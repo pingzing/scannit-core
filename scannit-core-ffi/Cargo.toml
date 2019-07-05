@@ -1,0 +1,9 @@
+[package]
+name = "scannit-core-ffi"
+description = """An FFI wrapper around scannit-core. Does all the pub extern and 
+#[no-mangle] nonsense required for consumption by foreign consumers."""
+version = "0.1.0"
+authors = ["Neil McAlister <mcalistern@gmail.com>"]
+edition = "2018"
+
+[dependencies]
