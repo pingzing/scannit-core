@@ -14,9 +14,14 @@ const READ_APP_INFO_COMMAND: [u8; 13] = [
     0x90, 0xBD, 0x00, 0x00, 0x07, 0x08, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00,
 ];
 
+///Command to read the control info file from the card.
+const READ_CONTROL_INFO_COMMAND: [u8; 13] = [
+    0x90, 0xBD, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00,
+];
+
 ///Command to read the season pass file on the card.
 const READ_PERIOD_PASS_COMMAND: [u8; 13] = [
-    0x90, 0xBD, 0x00, 0x00, 0x07, 0x01, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00,
+    0x90, 0xBD, 0x00, 0x00, 0x07, 0x01, 0x00, 0x00, 0x00, 0x23, 0x00, 0x00, 0x00,
 ];
 
 ///Command to read the stored value on the card.
@@ -26,7 +31,7 @@ const READ_STORED_VALUE_COMMAND: [u8; 13] = [
 
 ///Command to read the active eTicket on the card.
 const READ_E_TICKET_COMMAND: [u8; 13] = [
-    0x90, 0xBD, 0x00, 0x00, 0x07, 0x03, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00,
+    0x90, 0xBD, 0x00, 0x00, 0x07, 0x03, 0x00, 0x00, 0x00, 0x2D, 0x00, 0x00, 0x00,
 ];
 
 ///Command to read the 8 most recent transactions on the card.
@@ -52,6 +57,7 @@ pub enum Command {
     GetApplicationIds,
     SelectHsl,
     ReadAppInfo,
+    ReadControlInfo,
     ReadPeriodPass,
     ReadStoredValue,
     ReadETicket,
@@ -72,6 +78,7 @@ impl Command {
             Command::GetApplicationIds => &GET_APPLICATION_IDS_COMMAND,
             Command::SelectHsl => &SELECT_HSL_COMMAND,
             Command::ReadAppInfo => &READ_APP_INFO_COMMAND,
+            Command::ReadControlInfo => &READ_CONTROL_INFO_COMMAND,
             Command::ReadPeriodPass => &READ_PERIOD_PASS_COMMAND,
             Command::ReadStoredValue => &READ_STORED_VALUE_COMMAND,
             Command::ReadETicket => &READ_E_TICKET_COMMAND,
