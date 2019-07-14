@@ -1,5 +1,6 @@
 use crate::conversion::*;
 use crate::en1545date::{from_en1545_date, from_en1545_date_and_time};
+use crate::models::*;
 use byteorder::{BigEndian, ByteOrder};
 use chrono::prelude::*;
 use std::convert::TryInto;
@@ -19,22 +20,29 @@ pub struct TravelCard {
     pub application_transaction_counter: u32,
     pub action_list_counter: u32,
 
-    pub period_pass: PeriodPass
+    // Period pass
+    pub period_pass: PeriodPass,
+
+    pub stored_value_cents: u32,
+    pub last_load_datetime: DateTime<Utc>,
+    pub last_load_value: u32,
+    pub last_load_organization_id: u16,
+    pub last_load_device_num: u16,
 }
 
 pub struct PeriodPass {
-    pub product_code_1: ProductCode,    
-    pub validity_area_1: ValidityArea,    
+    pub product_code_1: ProductCode,
+    pub validity_area_1: ValidityArea,
     pub period_start_date_1: Date<Utc>,
     pub period_end_date_1: Date<Utc>,
 
-    pub product_code_2: ProductCode,        
+    pub product_code_2: ProductCode,
     pub validity_area_2: ValidityArea,
     pub period_start_date_2: Date<Utc>,
     pub period_end_date_2: Date<Utc>,
 
     // Most recent card load:
-    pub loaded_period_product: ProductCode,    
+    pub loaded_period_product: ProductCode,
     pub loaded_period_datetime: DateTime<Utc>,
     pub loaded_period_length: u16,
     pub loaded_period_price: u32, // in cents
@@ -46,15 +54,15 @@ pub struct PeriodPass {
     pub last_board_vehicle_number: u16,
     pub last_board_location: BoardingLocation,
     pub last_board_direction: BoardingDirection,
-    pub last_board_area: ValidityArea    
+    pub last_board_area: ValidityArea,
 }
 
 pub fn create_travel_card(
     app_info: &[u8],
     control_info: &[u8],
     period_pass: &[u8],
-    storedValue: &[u8],
-    eTicket: &[u8],
+    stored_value: &[u8],
+    e_ticket: &[u8],
     history: &[u8],
 ) -> TravelCard {
     let (app_version, app_key_version, app_instance_id, platform, is_protected) =
@@ -62,6 +70,7 @@ pub fn create_travel_card(
     let (issue_date, app_status, unblock_number, transaction_counter, action_counter) =
         read_control_info(control_info);
     let period_pass = read_period_pass(period_pass);
+    let stored_value = read_stored_value(stored_value);
 
     TravelCard {
         application_version: app_version,
@@ -69,12 +78,20 @@ pub fn create_travel_card(
         application_instance_id: app_instance_id,
         platform_type: platform,
         is_mac_protected: is_protected,
+
         application_issuing_date: issue_date,
         application_status: app_status,
         application_unblocking_number: unblock_number,
         application_transaction_counter: transaction_counter,
         action_list_counter: action_counter,
+
         period_pass: period_pass,
+
+        stored_value_cents: stored_value.cents,
+        last_load_datetime: stored_value.last_load_datetime,
+        last_load_value: stored_value.last_load_value,
+        last_load_organization_id: stored_value.last_load_organization_id,
+        last_load_device_num: stored_value.last_load_device_num,
     }
 }
 
@@ -83,10 +100,10 @@ pub fn create_travel_card(
 
 fn read_application_info(app_info: &[u8]) -> (u8, u8, String, u8, bool) {
     (
-        app_info[0] & 0xF0,                          // Application Version
-        app_info[0] & 0x0F,                          // Application Key Version
+        app_info[0] & 0xF0,              // Application Version
+        app_info[0] & 0x0F,              // Application Key Version
         as_hex_string(&app_info[1..10]), // Application Instance ID
-        app_info[10] & 0xE0,                         // Platform Type, 0 = NXP DESFire 4kB.
+        app_info[10] & 0xE0,             // Platform Type, 0 = NXP DESFire 4kB.
         (app_info[10] & 0x10) != 0, // SecurityLevel, which is a 1-bit field. 0 = open, 1 = MAC protected.
     )
 }
@@ -95,8 +112,8 @@ fn read_control_info(control_info: &[u8]) -> (DateTime<Utc>, bool, u8, u32, u32)
     let date = (((control_info[0] as u16) << 8) | control_info[1] as u16) >> 2; // Shift out the least-significant two bits, dates are only 14-bits long.
     (
         from_en1545_date(date),
-        control_info[1] & 0x2 != 0,    // 1-bit app status (no idea what status *means*, but...)
-        control_info[2],               // 8-bit 'unblocking number' (ditto, no idea)
+        control_info[1] & 0x2 != 0, // 1-bit app status (no idea what status *means*, but...)
+        control_info[2],            // 8-bit 'unblocking number' (ditto, no idea)
         BigEndian::read_uint(&control_info[3..6], 3)
             .try_into()
             .unwrap(), // Application transaction counter, 24-bits long
@@ -104,14 +121,13 @@ fn read_control_info(control_info: &[u8]) -> (DateTime<Utc>, bool, u8, u32, u32)
     )
 }
 
-fn read_period_pass(period_pass: &[u8]) -> PeriodPass {    
+fn read_period_pass(period_pass: &[u8]) -> PeriodPass {
     let product_code_type_1 = get_bits_as_u8(period_pass, 0, 1);
     let product_code_1 = get_bits_as_u16(period_pass, 1, 14);
     let validity_area_type_1 = get_bits_as_u8(period_pass, 15, 2);
     let validity_area_1 = get_bits_as_u8(period_pass, 17, 6);
     let start_date_1 = get_bits_as_u16(period_pass, 23, 14);
     let end_date_1 = get_bits_as_u16(period_pass, 37, 14);
-    
     let product_code_type_2 = get_bits_as_u8(period_pass, 56, 1);
     let product_code_2 = get_bits_as_u16(period_pass, 57, 14);
     let validity_area_type_2 = get_bits_as_u8(period_pass, 71, 2);
@@ -133,7 +149,7 @@ fn read_period_pass(period_pass: &[u8]) -> PeriodPass {
     let last_board_vehicle_number = get_bits_as_u16(period_pass, 233, 14);
     let last_board_location_num_type = get_bits_as_u8(period_pass, 247, 2);
     let last_board_location_num = get_bits_as_u16(period_pass, 249, 14);
-    let last_board_direction = get_bits_as_u8(period_pass, 264, 1);
+    let last_board_direction = get_bits_as_u8(period_pass, 263, 1);
     let last_board_area_type = get_bits_as_u8(period_pass, 264, 2);
     let last_board_area = get_bits_as_u8(period_pass, 266, 6);
     PeriodPass {
@@ -156,132 +172,32 @@ fn read_period_pass(period_pass: &[u8]) -> PeriodPass {
 
         last_board_datetime: from_en1545_date_and_time(last_board_date, last_board_time),
         last_board_vehicle_number: last_board_vehicle_number,
-        last_board_location: BoardingLocation::new(last_board_location_num_type, last_board_location_num),
+        last_board_location: BoardingLocation::new(
+            last_board_location_num_type,
+            last_board_location_num,
+        ),
         last_board_direction: BoardingDirection::new(last_board_direction),
-        last_board_area: ValidityArea::new(last_board_area_type, last_board_area)
+        last_board_area: ValidityArea::new(last_board_area_type, last_board_area),
     }
 }
 
-pub enum ProductCode {
-    FaresFor2010(u16), // Code type = 0
-    FaresFor2014(u16), // Code type = 1
-}
+fn read_stored_value(stored_value: &[u8]) -> StoredValue {
+    let last_load_date = get_bits_as_u16(stored_value, 20, 14);
+    let last_load_time = get_bits_as_u16(stored_value, 34, 11);
 
-impl ProductCode {
-    fn new(code_type: u8, value: u16) -> ProductCode {
-        if code_type == 0 { ProductCode::FaresFor2010(value) }
-        else { ProductCode::FaresFor2014(value) }
+    StoredValue {
+        cents: get_bits_as_u32(stored_value, 0, 20),
+        last_load_datetime: from_en1545_date_and_time(last_load_date, last_load_time),
+        last_load_value: get_bits_as_u32(stored_value, 45, 20),
+        last_load_organization_id: get_bits_as_u16(stored_value, 65, 14),
+        last_load_device_num: get_bits_as_u16(stored_value, 79, 14),
     }
 }
 
-/// The number of a boarded element.
-pub enum BoardingLocation {
-    BusNumber(u16),
-    TrainNumber(u16),    
-    PlatformNumber(u16),
-}
-
-impl BoardingLocation{
-    fn new(boarding_area_type: u8, boarding_area_value: u16) -> BoardingLocation {
-        match boarding_area_type {
-            1 => BoardingLocation::BusNumber(boarding_area_value),
-            2 => BoardingLocation::TrainNumber(boarding_area_value),
-            3 => BoardingLocation::PlatformNumber(boarding_area_value),
-            _ => panic!("Given value for BoardingLocation not supported.")
-        }
-    }
-}
-
-/// This enum is pure speculation--the underlying value is a single bit. What else _could_ it mean?
-pub enum BoardingDirection {
-    /// Indicates that at the time of boarding, the transit medium  was headed toward the end of its route.
-    TowardEnd,
-    /// Indicates that at the time of boarding, the transit medium was headed toward the start of its route.
-    TowardStart
-}
-
-impl BoardingDirection {
-    fn new(value: u8) -> BoardingDirection {
-        match value {
-            0 => BoardingDirection::TowardEnd,
-            1 => BoardingDirection::TowardStart,
-            _ => panic!("Given value for BoardingDirection not supported.")
-        }
-    }
-}
-
-/// Represents an area in which, or a vehicle for which, a ticket is valid.
-pub enum ValidityArea {
-    Zone(Vec<ValidityZone>),
-    Vehicle(VehicleType)
-}
-
-impl ValidityArea {
-    fn new(area_type: u8, area_value: u8) -> ValidityArea {
-        let mut zones: Vec<ValidityZone> = Vec::new();
-        if area_type == 0 { 
-            let from_zone = area_value & 0b0000_0111; //rightmost 3 bits
-            let to_zone = (area_value & 0b0011_1000) >> 3; // 3 bits to the left of that
-            for val in from_zone..to_zone {
-                zones.push(ValidityZone::from_u8(val));
-            }
-            ValidityArea::Zone(zones) 
-        }
-        else { ValidityArea::Vehicle(VehicleType::from_u8(area_value)) }
-    }
-}
-
-/// The HSL fare zone(s) in which a ticket is valid.
-#[derive(Clone)]
-pub enum ValidityZone {
-    ZoneA = 0,
-    ZoneB = 1,
-    ZoneC = 2,
-    ZoneD = 3,
-    ZoneE = 4,
-    ZoneF = 5,
-    ZoneG = 6,
-    ZoneH = 7,
-}
-
-impl ValidityZone {
-    fn from_u8(value: u8) -> ValidityZone {
-        match value {
-            0 => ValidityZone::ZoneA,
-            1 => ValidityZone::ZoneB,
-            2 => ValidityZone::ZoneC,
-            3 => ValidityZone::ZoneD,
-            4 => ValidityZone::ZoneE,
-            5 => ValidityZone::ZoneF,
-            6 => ValidityZone::ZoneG,
-            7 => ValidityZone::ZoneH,
-            _ => panic!("Given value for ValidityZone not supported.")
-        }
-    }
-}
-
-/// The vehicle type on which this ticket is valid.
-pub enum VehicleType {
-    Undefined = 0,
-    Bus = 1,
-    Tram = 5,
-    Metro = 6,
-    Train = 7,
-    Ferry = 8,
-    ULine = 9,
-}
-
-impl VehicleType {
-    fn from_u8(value: u8) -> VehicleType {
-        match value {
-            0 => VehicleType::Undefined,
-            1 => VehicleType::Bus,
-            5 => VehicleType::Tram,
-            6 => VehicleType::Metro,
-            7 => VehicleType::Train,
-            8 => VehicleType::Ferry,
-            9 => VehicleType::ULine,
-            _ => panic!("Given value for VehicleType not supported.")
-        }
-    }
+struct StoredValue {
+    cents: u32,
+    last_load_datetime: DateTime<Utc>,
+    last_load_value: u32,
+    last_load_organization_id: u16,
+    last_load_device_num: u16,
 }

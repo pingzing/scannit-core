@@ -4,5 +4,6 @@
 mod conversion;
 mod desfire;
 mod en1545date;
+mod eticket;
 mod models;
 mod travelcard;
