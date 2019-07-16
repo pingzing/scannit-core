@@ -11,6 +11,7 @@ chrono = "0.4"
 chrono-tz = "0.5"
 lazy_static = "1.3.0"
 byteorder = "1"
+num-traits = "0.2"
 
 [workspace]
-members = ["scannit-core-ffi"]
+members = ["scannit-core-ffi", "scannit-cli"]

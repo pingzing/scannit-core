@@ -1,9 +1,7 @@
-// Remove this once we have actual implementation...
-#![allow(dead_code)]
-
 mod conversion;
-mod desfire;
+pub mod desfire;
 mod en1545date;
 mod eticket;
+mod history;
 mod models;
-mod travelcard;
+pub mod travelcard;

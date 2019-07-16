@@ -1,9 +1,13 @@
+#[derive(Debug)]
 pub enum ProductCode {
     FaresFor2010(u16), // Code type = 0
     FaresFor2014(u16), // Code type = 1
 }
 
 impl ProductCode {
+    pub const FARES_2010_TYPE: u8 = 0;
+    pub const FARES_2014_TYPE: u8 = 1;
+
     pub(crate) fn new(code_type: u8, value: u16) -> ProductCode {
         if code_type == 0 {
             ProductCode::FaresFor2010(value)
@@ -14,6 +18,7 @@ impl ProductCode {
 }
 
 /// The number of a boarded element.
+#[derive(Debug)]
 pub enum BoardingLocation {
     BusNumber(u16),
     TrainNumber(u16),
@@ -31,6 +36,7 @@ impl BoardingLocation {
     }
 }
 
+#[derive(Debug)]
 /// This enum is pure speculation--the underlying value is a single bit. What else _could_ it mean?
 pub enum BoardingDirection {
     /// Indicates that at the time of boarding, the transit medium  was headed toward the end of its route.
@@ -50,12 +56,16 @@ impl BoardingDirection {
 }
 
 /// Represents an area in which, or a vehicle for which, a ticket is valid.
+#[derive(Debug)]
 pub enum ValidityArea {
     Zone(Vec<ValidityZone>),
     Vehicle(VehicleType),
 }
 
 impl ValidityArea {
+    pub const ZONE_TYPE: u8 = 0;
+    pub const VEHICLE_TYPE: u8 = 1;
+
     pub(crate) fn new(area_type: u8, area_value: u8) -> ValidityArea {
         let mut zones: Vec<ValidityZone> = Vec::new();
         if area_type == 0 {
@@ -72,7 +82,7 @@ impl ValidityArea {
 }
 
 /// The HSL fare zone(s) in which a ticket is valid.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ValidityZone {
     ZoneA = 0,
     ZoneB = 1,
@@ -100,6 +110,7 @@ impl ValidityZone {
     }
 }
 
+#[derive(Debug)]
 pub enum ValidityLength {
     Minutes(u8),
     Hours(u8),
@@ -120,6 +131,7 @@ impl ValidityLength {
 }
 
 /// The vehicle type on which this ticket is valid.
+#[derive(Debug)]
 pub enum VehicleType {
     Undefined = 0,
     Bus = 1,
@@ -140,11 +152,12 @@ impl VehicleType {
             7 => VehicleType::Train,
             8 => VehicleType::Ferry,
             9 => VehicleType::ULine,
-            _ => panic!("Given value for VehicleType not supported."),
+            e => panic!("Given value ('{:?}') for VehicleType not supported.", e),
         }
     }
 }
 
+#[derive(Debug)]
 pub enum Language {
     Finnish = 0,
     Swedish = 1,
@@ -162,35 +175,48 @@ impl Language {
     }
 }
 
-pub enum SaleDeviceType {
-    ServicePointSalesDevice = 0,
-    DriverTicketMachine = 1,
-    CardReader = 2,
-    TicketMachine = 3,
-    Server = 4,
-    HSLSmallEquipment = 5,
-    ExternalServiceEquipment = 6,
-    Reserved = 7,
+#[derive(Debug)]
+pub enum SaleDevice {
+    ServicePointSalesDevice(u16),
+    DriverTicketMachine(u16),
+    CardReader(u16),
+    TicketMachine(u16),
+    Server(u16),
+    HSLSmallEquipment(u16),
+    ExternalServiceEquipment(u16),
+    Reserved(u16),
 }
 
-impl SaleDeviceType {
-    pub(crate) fn from_u8(value: u8) -> SaleDeviceType {
-        match value {
-            0 => SaleDeviceType::ServicePointSalesDevice,
-            1 => SaleDeviceType::DriverTicketMachine,
-            2 => SaleDeviceType::CardReader,
-            3 => SaleDeviceType::TicketMachine,
-            4 => SaleDeviceType::Server,
-            5 => SaleDeviceType::HSLSmallEquipment,
-            6 => SaleDeviceType::ExternalServiceEquipment,
-            7 => SaleDeviceType::Reserved,
+impl SaleDevice {
+    pub(crate) fn new(device_type: u8, device_number: u16) -> SaleDevice {
+        match device_type {
+            0 => SaleDevice::ServicePointSalesDevice(device_number),
+            1 => SaleDevice::DriverTicketMachine(device_number),
+            2 => SaleDevice::CardReader(device_number),
+            3 => SaleDevice::TicketMachine(device_number),
+            4 => SaleDevice::Server(device_number),
+            5 => SaleDevice::HSLSmallEquipment(device_number),
+            6 => SaleDevice::ExternalServiceEquipment(device_number),
+            7 => SaleDevice::Reserved(device_number),
             _ => panic!("Given value for SaleDeviceType not supported."),
         }
     }
 }
 
+#[derive(Debug)]
 pub enum BoardingArea {
     Zone(ValidityZone),
     Vehicle(VehicleType),
     ZoneCircle(u8), // Not sure what this is. One of the old-style regions?
+}
+
+impl BoardingArea {
+    pub(crate) fn new(area_type: u8, area_value: u8) -> BoardingArea {
+        match area_type {
+            0 => BoardingArea::Zone(ValidityZone::from_u8(area_value)),
+            1 => BoardingArea::Vehicle(VehicleType::from_u8(area_type)),
+            2 => BoardingArea::ZoneCircle(area_value),
+            _ => panic!("Given value for BoardingArea type not supported."),
+        }
+    }
 }

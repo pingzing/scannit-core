@@ -1,10 +1,13 @@
 use crate::conversion::*;
 use crate::en1545date::{from_en1545_date, from_en1545_date_and_time};
+use crate::eticket::*;
+use crate::history::*;
 use crate::models::*;
 use byteorder::{BigEndian, ByteOrder};
 use chrono::prelude::*;
 use std::convert::TryInto;
 
+#[derive(Debug)]
 pub struct TravelCard {
     // Application Info
     pub application_version: u8,
@@ -28,8 +31,12 @@ pub struct TravelCard {
     pub last_load_value: u32,
     pub last_load_organization_id: u16,
     pub last_load_device_num: u16,
+
+    pub e_ticket: ETicket,
+    pub history: Vec<History>,
 }
 
+#[derive(Debug)]
 pub struct PeriodPass {
     pub product_code_1: ProductCode,
     pub validity_area_1: ValidityArea,
@@ -65,12 +72,21 @@ pub fn create_travel_card(
     e_ticket: &[u8],
     history: &[u8],
 ) -> TravelCard {
+    println!(
+        "Lengths: app_info: {:?}, period_pass: {:?}, history: {:?}",
+        app_info.len(),
+        period_pass.len(),
+        history.len()
+    );
+
     let (app_version, app_key_version, app_instance_id, platform, is_protected) =
         read_application_info(app_info);
     let (issue_date, app_status, unblock_number, transaction_counter, action_counter) =
         read_control_info(control_info);
     let period_pass = read_period_pass(period_pass);
     let stored_value = read_stored_value(stored_value);
+    let e_ticket = create_e_ticket(e_ticket);
+    let history = create_history_entries(history);
 
     TravelCard {
         application_version: app_version,
@@ -92,6 +108,9 @@ pub fn create_travel_card(
         last_load_value: stored_value.last_load_value,
         last_load_organization_id: stored_value.last_load_organization_id,
         last_load_device_num: stored_value.last_load_device_num,
+
+        e_ticket: e_ticket,
+        history: history,
     }
 }
 

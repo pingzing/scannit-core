@@ -27,13 +27,21 @@ pub fn get_bits_as_u64(bytes: &[u8], bit_offset_index: usize, bit_length: usize)
     let end_byte_offset = (bit_length / 8) + byte_offset + 1;
     let num_relevant_bytes = end_byte_offset - byte_offset;
     let num_bits_to_mask = bit_offset_index % 8;
-    let num_bits_to_shift = (num_relevant_bytes * 8) - (num_bits_to_mask + bit_length);
+    let leading_and_value_bits = num_bits_to_mask + bit_length;
+    let num_bits_to_shift = if num_relevant_bytes * 8 > leading_and_value_bits {
+        (num_relevant_bytes * 8) - leading_and_value_bits
+    } else {
+        0
+    };
     let mut and_mask = 0u64;
     for _ in 0..num_bits_to_mask {
         and_mask = (and_mask << 1) + 1;
     }
     // Shift the 1s to the top of the bit-value, and negate the whole number to generate our mask
-    and_mask = !(and_mask << (64 - num_bits_to_mask));
+    if num_bits_to_mask > 0 {
+        and_mask = and_mask << (64 - num_bits_to_mask);
+    }
+    and_mask = !and_mask;
     let bytes = &bytes[byte_offset..end_byte_offset];
     let bit_position = 56;
     // 1) Weld all the bytes together, moving up the number to make space for new bytes as we go
@@ -87,6 +95,22 @@ mod test {
         let bytes: [u8; 5] = [0b1100_1001, 0b0000_1000, 0b0000_0001, 0b1101_0000, 0b0110_0011];
         let expected: u32 = 0b10000100_00000000_11101000_00110001;
         let actual = get_bits_as_u32(&bytes, 7, 32);
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn to_bits_should_handle_values_that_dont_need_shifting() {
+        let bytes: [u8; 2] = [0x00, 0x12];
+        let expected = 0b0000_0010;
+        let actual = get_bits_as_u8(&bytes, 14, 2);
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn to_bits_should_handle_weird_case_1() {
+        let bytes: [u8; 3] = [0b1000_0010, 0b0101_1011, 0b0000_0101];
+        let expected = 0b0000_0010;
+        let actual = get_bits_as_u16(&bytes, 15, 2);
         assert_eq!(expected, actual);
     }
 }
