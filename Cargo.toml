@@ -15,3 +15,6 @@ num-traits = "0.2"
 
 [workspace]
 members = ["scannit-core-ffi", "scannit-cli"]
+
+[lib]
+crate-type = ["dylib"]
