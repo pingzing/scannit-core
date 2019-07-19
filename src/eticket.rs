@@ -122,7 +122,7 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
 
         extra_zone: extra_zone,
         period_pass_validity_area: ValidityArea::new(
-            ValidityArea::ZONE_TYPE,
+            ValidityArea::OLD_ZONE_TYPE,
             period_pass_validity_area,
         ),
         extension_product_code: ProductCode::new(
@@ -130,12 +130,12 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
             extension_product_code,
         ),
         extension_1_validity_area: ValidityArea::new(
-            ValidityArea::ZONE_TYPE,
+            ValidityArea::OLD_ZONE_TYPE,
             extension_1_validity_area,
         ),
         extension_1_fare_cents: extension_1_fare,
         extension_2_validity_area: ValidityArea::new(
-            ValidityArea::ZONE_TYPE,
+            ValidityArea::OLD_ZONE_TYPE,
             extension_2_validity_area,
         ),
         extension_2_fare_cents: extension_2_fare,

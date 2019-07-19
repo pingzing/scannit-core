@@ -20,6 +20,7 @@ impl ProductCode {
 /// The number of a boarded element.
 #[derive(Debug)]
 pub enum BoardingLocation {
+    NoneOrReserved,
     BusNumber(u16),
     TrainNumber(u16),
     PlatformNumber(u16),
@@ -28,10 +29,11 @@ pub enum BoardingLocation {
 impl BoardingLocation {
     pub(crate) fn new(boarding_area_type: u8, boarding_area_value: u16) -> BoardingLocation {
         match boarding_area_type {
+            0 => BoardingLocation::NoneOrReserved,
             1 => BoardingLocation::BusNumber(boarding_area_value),
             2 => BoardingLocation::TrainNumber(boarding_area_value),
             3 => BoardingLocation::PlatformNumber(boarding_area_value),
-            _ => panic!("Given value for BoardingLocation not supported."),
+            e => panic!("Given value ({}) for BoardingLocation not supported.", e),
         }
     }
 }
@@ -63,20 +65,23 @@ pub enum ValidityArea {
 }
 
 impl ValidityArea {
-    pub const ZONE_TYPE: u8 = 0;
+    pub const OLD_ZONE_TYPE: u8 = 0;
     pub const VEHICLE_TYPE: u8 = 1;
+    pub const NEW_ZONE_TYPE: u8 = 2; // The docs LIE, and don't include this value. But it's there!
 
     pub(crate) fn new(area_type: u8, area_value: u8) -> ValidityArea {
         let mut zones: Vec<ValidityZone> = Vec::new();
-        if area_type == 0 {
-            let from_zone = area_value & 0b0000_0111; //rightmost 3 bits
-            let to_zone = (area_value & 0b0011_1000) >> 3; // 3 bits to the left of that
-            for val in from_zone..to_zone {
-                zones.push(ValidityZone::from_u8(val));
+        match area_type {
+            1 => ValidityArea::Vehicle(VehicleType::from_u8(area_value)),
+            0 | 2 => {
+                let from_zone = (area_value & 0b0011_1000) >> 3; // leftmost 3 bits
+                let to_zone = area_value & 0b0000_0111; // 3 bits to the right of that
+                for val in from_zone..=to_zone {
+                    zones.push(ValidityZone::from_u8(val));
+                }
+                ValidityArea::Zone(zones)
             }
-            ValidityArea::Zone(zones)
-        } else {
-            ValidityArea::Vehicle(VehicleType::from_u8(area_value))
+            e => panic!("Unsupported area type: {}", e),
         }
     }
 }

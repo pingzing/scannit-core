@@ -24,8 +24,8 @@ pub fn get_bits_as_u32(bytes: &[u8], bit_offset_index: usize, bit_length: usize)
 
 pub fn get_bits_as_u64(bytes: &[u8], bit_offset_index: usize, bit_length: usize) -> u64 {
     let byte_offset = bit_offset_index / 8;
-    let end_byte_offset = (bit_length / 8) + byte_offset + 1;
-    let num_relevant_bytes = end_byte_offset - byte_offset;
+    let end_byte_index = (bit_offset_index + bit_length - 1) / 8;
+    let num_relevant_bytes = (end_byte_index - byte_offset) + 1;
     let num_bits_to_mask = bit_offset_index % 8;
     let leading_and_value_bits = num_bits_to_mask + bit_length;
     let num_bits_to_shift = if num_relevant_bytes * 8 > leading_and_value_bits {
@@ -42,13 +42,15 @@ pub fn get_bits_as_u64(bytes: &[u8], bit_offset_index: usize, bit_length: usize)
         and_mask = and_mask << (64 - num_bits_to_mask);
     }
     and_mask = !and_mask;
-    let bytes = &bytes[byte_offset..end_byte_offset];
+    let bytes = &bytes[byte_offset..=end_byte_index];
+
     let bit_position = 56;
     // 1) Weld all the bytes together, moving up the number to make space for new bytes as we go
     let mut welded_bytes = 0u64;
     for (i, byte) in bytes.iter().enumerate() {
         welded_bytes += (*byte as u64) << (bit_position - (i * 8))
     }
+
     // 2) AND off the top bits that aren't part of what we want
     // 3) Shift off the bottom bits that aren't part of what we want
     // 4) And shift rightward based on what the user requested of us
@@ -107,7 +109,9 @@ mod test {
     }
 
     #[test]
-    fn to_bits_should_handle_weird_case_1() {
+    fn to_bits_should_handle_straddled_values_at_end_of_array() {
+        // We seem to get right-shifted by one bit too many.
+        // These two bits are what we're asking for  |----|
         let bytes: [u8; 3] = [0b1000_0010, 0b0101_1011, 0b0000_0101];
         let expected = 0b0000_0010;
         let actual = get_bits_as_u16(&bytes, 15, 2);

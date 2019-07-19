@@ -26,7 +26,6 @@ pub extern "C" fn get_vector() -> Buffer {
         .into_iter()
         .map(|x| CString::new(x).unwrap().into_raw())
         .collect();
-    //.into_boxed_slice();
     let data = buffer.as_mut_ptr();
     let len = buffer.len();
     std::mem::forget(buffer); // Leak the memory so we don't auto-drop it
@@ -49,6 +48,6 @@ pub extern "C" fn free_vector(buf: Buffer) {
 
 #[repr(C)]
 pub struct Buffer {
-    data: *mut *mut c_char,
+    data: *mut *mut c_char,    
     len: usize,
 }
