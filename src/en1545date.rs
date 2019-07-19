@@ -32,7 +32,6 @@ pub fn from_en1545_date_and_time(date: u16, time: u16) -> DateTime<Utc> {
         .with_timezone(&Utc)
 }
 
-// --- TESTS ---
 #[cfg(test)]
 mod test {
     use crate::en1545date::{from_en1545_date, from_en1545_date_and_time};

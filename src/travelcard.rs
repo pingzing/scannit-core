@@ -3,9 +3,7 @@ use crate::en1545date::{from_en1545_date, from_en1545_date_and_time};
 use crate::eticket::*;
 use crate::history::*;
 use crate::models::*;
-use byteorder::{BigEndian, ByteOrder};
 use chrono::prelude::*;
-use std::convert::TryInto;
 
 #[derive(Debug)]
 pub struct TravelCard {
@@ -26,13 +24,17 @@ pub struct TravelCard {
     // Period pass
     pub period_pass: PeriodPass,
 
+    // Last load info
     pub stored_value_cents: u32,
     pub last_load_datetime: DateTime<Utc>,
     pub last_load_value: u32,
     pub last_load_organization_id: u16,
     pub last_load_device_num: u16,
 
+    // E-Ticket
     pub e_ticket: ETicket,
+
+    // History
     pub history: Vec<History>,
 }
 
@@ -43,6 +45,8 @@ pub struct PeriodPass {
     pub period_start_date_1: Date<Utc>,
     pub period_end_date_1: Date<Utc>,
 
+    // This _seems_ to be the last-known season pass before the switchover to the new card format.
+    // Probably part of the migration path when they were doing the changeover.
     pub product_code_2: ProductCode,
     pub validity_area_2: ValidityArea,
     pub period_start_date_2: Date<Utc>,
@@ -119,24 +123,23 @@ pub fn create_travel_card(
 
 fn read_application_info(app_info: &[u8]) -> (u8, u8, String, u8, bool) {
     (
-        app_info[0] & 0xF0,              // Application Version
-        app_info[0] & 0x0F,              // Application Key Version
-        as_hex_string(&app_info[1..10]), // Application Instance ID
-        app_info[10] & 0xE0,             // Platform Type, 0 = NXP DESFire 4kB.
-        (app_info[10] & 0x10) != 0, // SecurityLevel, which is a 1-bit field. 0 = open, 1 = MAC protected.
+        get_bits_as_u8(app_info, 0, 4),       // Application Version
+        get_bits_as_u8(app_info, 4, 4), // Application Key Version (though the spec sheet marks it as "reserved")
+        as_hex_string(&app_info[1..10]), // Application Instance ID (aka the card's unique ID number)
+        get_bits_as_u8(app_info, 80, 3), // Platform Type, 0 = NXP DESFire 4kB.
+        get_bits_as_u8(app_info, 83, 1) != 0, // SecurityLevel, which is a 1-bit field. 0 = open, 1 = MAC protected.
     )
 }
 
 fn read_control_info(control_info: &[u8]) -> (DateTime<Utc>, bool, u8, u32, u32) {
-    let date = (((control_info[0] as u16) << 8) | control_info[1] as u16) >> 2; // Shift out the least-significant two bits, dates are only 14-bits long.
+    let issuing_date = get_bits_as_u16(control_info, 0, 14);
     (
-        from_en1545_date(date),
-        control_info[1] & 0x2 != 0, // 1-bit app status (no idea what status *means*, but...)
-        control_info[2],            // 8-bit 'unblocking number' (ditto, no idea)
-        BigEndian::read_uint(&control_info[3..6], 3)
-            .try_into()
-            .unwrap(), // Application transaction counter, 24-bits long
-        BigEndian::read_u32(&control_info[6..10]), // Action List Counter, 32-bits long
+        from_en1545_date(issuing_date),
+        get_bits_as_u8(control_info, 14, 1) != 0, // 1-bit app status (no idea what status *means*, but...)
+        // Skip a single reserved bit here
+        get_bits_as_u8(control_info, 16, 8), // 8-bit 'unblocking number' (ditto, no idea)
+        get_bits_as_u32(control_info, 24, 24), // Application transaction counter, 24-bits long
+        get_bits_as_u32(control_info, 48, 32), // Action List Counter, 32-bits long
     )
 }
 

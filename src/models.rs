@@ -1,4 +1,7 @@
 #[derive(Debug)]
+
+/// Indicates whether a PeriodPass or Ticket uses the old-style fares and zones, or the new.
+/// 2010 is the old-style, while 2014 is the new-style.
 pub enum ProductCode {
     FaresFor2010(u16), // Code type = 0
     FaresFor2014(u16), // Code type = 1
@@ -9,7 +12,7 @@ impl ProductCode {
     pub const FARES_2014_TYPE: u8 = 1;
 
     pub(crate) fn new(code_type: u8, value: u16) -> ProductCode {
-        if code_type == 0 {
+        if code_type == ProductCode::FARES_2010_TYPE {
             ProductCode::FaresFor2010(value)
         } else {
             ProductCode::FaresFor2014(value)
@@ -52,7 +55,7 @@ impl BoardingDirection {
         match value {
             0 => BoardingDirection::TowardEnd,
             1 => BoardingDirection::TowardStart,
-            _ => panic!("Given value for BoardingDirection not supported."),
+            e => panic!("Given value ({}) for BoardingDirection not supported.", e),
         }
     }
 }
@@ -72,8 +75,9 @@ impl ValidityArea {
     pub(crate) fn new(area_type: u8, area_value: u8) -> ValidityArea {
         let mut zones: Vec<ValidityZone> = Vec::new();
         match area_type {
-            1 => ValidityArea::Vehicle(VehicleType::from_u8(area_value)),
-            0 | 2 => {
+            ValidityArea::VEHICLE_TYPE => ValidityArea::Vehicle(VehicleType::from_u8(area_value)),
+            // TODO: Handle 0 correctly. It represents an old zone (i.e. Zone 1, Zone 2, Region etc)
+            ValidityArea::OLD_ZONE_TYPE | ValidityArea::NEW_ZONE_TYPE => {
                 let from_zone = (area_value & 0b0011_1000) >> 3; // leftmost 3 bits
                 let to_zone = area_value & 0b0000_0111; // 3 bits to the right of that
                 for val in from_zone..=to_zone {
@@ -110,7 +114,7 @@ impl ValidityZone {
             5 => ValidityZone::ZoneF,
             6 => ValidityZone::ZoneG,
             7 => ValidityZone::ZoneH,
-            _ => panic!("Given value for ValidityZone not supported."),
+            e => panic!("Given value ({}) for ValidityZone not supported.", e),
         }
     }
 }
@@ -130,7 +134,7 @@ impl ValidityLength {
             1 => ValidityLength::Hours(length_value),
             2 => ValidityLength::TwentyFourHourPeriods(length_value),
             3 => ValidityLength::Days(length_value),
-            _ => panic!("Given value for ValidityLength type not supported."),
+            e => panic!("Given value ({}) for ValidityLength type not supported.", e),
         }
     }
 }
@@ -175,11 +179,12 @@ impl Language {
             0 => Language::Finnish,
             1 => Language::Swedish,
             2 => Language::English,
-            _ => panic!("Given value for Language not supported."),
+            e => panic!("Given value ({}) for Language not supported.", e),
         }
     }
 }
 
+/// The type of device that sold the ticket, or recharged the card.
 #[derive(Debug)]
 pub enum SaleDevice {
     ServicePointSalesDevice(u16),
@@ -203,11 +208,12 @@ impl SaleDevice {
             5 => SaleDevice::HSLSmallEquipment(device_number),
             6 => SaleDevice::ExternalServiceEquipment(device_number),
             7 => SaleDevice::Reserved(device_number),
-            _ => panic!("Given value for SaleDeviceType not supported."),
+            e => panic!("Given value ({}) for SaleDeviceType not supported.", e),
         }
     }
 }
 
+/// The type and value of area where boarding last happened.
 #[derive(Debug)]
 pub enum BoardingArea {
     Zone(ValidityZone),
@@ -221,7 +227,7 @@ impl BoardingArea {
             0 => BoardingArea::Zone(ValidityZone::from_u8(area_value)),
             1 => BoardingArea::Vehicle(VehicleType::from_u8(area_type)),
             2 => BoardingArea::ZoneCircle(area_value),
-            _ => panic!("Given value for BoardingArea type not supported."),
+            e => panic!("Given value ({}) for BoardingArea type not supported.", e),
         }
     }
 }

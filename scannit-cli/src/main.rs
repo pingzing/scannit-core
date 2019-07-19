@@ -1,3 +1,6 @@
+// The world's laziest example of using of the scannit-core library.
+// The absolute bare minimum to get it working, and test that it works.
+
 use pcsc::*;
 use scannit_core::desfire;
 use scannit_core::travelcard::create_travel_card;

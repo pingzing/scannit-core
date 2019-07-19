@@ -43,13 +43,13 @@ pub const READ_HISTORY_COMMAND: [u8; 13] = [
 pub const READ_NEXT_COMMAND: [u8; 5] = [0x90, 0xAF, 0x00, 0x00, 0x00];
 
 // --- Responses ---
-///DESFire OPERATION_OK response. In Hex: 0x91, 0x00.
+///DESFire OPERATION_OK response.
 pub const OK_RESPONSE: [u8; 2] = [0x91, 0x00];
 
-///DESFire error response. Not sure what it's known as internally. In Hex: 0x91, 0x9D.
+///DESFire error response. Not sure what it's known as internally.
 pub const ERROR_RESPONSE: [u8; 2] = [0x91, 0x9D];
 
-///DESFire ADDTIONAL_FRAME response. Indicates that more data is expected to be sent. In Hex: 0x91, 0xAF.
+///DESFire ADDTIONAL_FRAME response. Indicates that there is more data, if the caller would like to ask for it.
 pub const MORE_DATA_RESPONSE: [u8; 2] = [0x91, 0xAF];
 
 pub enum Command {
