@@ -60,16 +60,14 @@ steps:
     condition: and( ne(variables['ignore_examples'], True), eq(variables['Agent.OS'], 'Linux'))
 
   - script: |
-      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR;]$(ndk_home)"
-      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"
+      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR;]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/"      
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"      
     displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
 
   - script: |
       echo "AR Path is " $CARGO_TARGET_$(targetCapitalized)_AR
-      echo "Linker Path is " $CARGO_TARGET_$(targetCapitalized)_LINKER
-      echo "Test path is " $CARGO_TARGET_TEST_AR
+      echo "Linker Path is " $CARGO_TARGET_$(targetCapitalized)_LINKER      
     displayName: Test new env vars
     condition: contains( variables['target'], 'android' )
 
