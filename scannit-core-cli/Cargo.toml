@@ -1,0 +1,9 @@
+[package]
+name = "scannit-core-cli"
+version = "0.1.0"
+authors = ["Neil McAlister <mcalistern@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+scannit-core = {path = "../"}
+pcsc = "2"

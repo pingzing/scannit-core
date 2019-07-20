@@ -16,13 +16,13 @@ chrono-tz = "0.5"
 lazy_static = "1.3.0"
 num-traits = "0.2"
 
+[workspace]
+members = ["scannit-core-ffi", "scannit-core-cli"]
+
+[lib]
+crate-type = ["dylib"]
+
 # Required for the CLI example to actually read a smart card.
 # Note: Requires libpcsclite-dev which often has to be explicitly installed on Linux.
 [dev-dependencies]
 pcsc = "2"
-
-[workspace]
-members = ["scannit-core-ffi"]
-
-[lib]
-crate-type = ["dylib"]
