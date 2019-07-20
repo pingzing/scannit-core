@@ -15,7 +15,7 @@ pub struct History {
 
 pub fn create_history_entries(history_bytes: &[u8]) -> Vec<History> {
     let num_entries = history_bytes.len() / 12; // Each history entry is 12 bytes.
-    let entry_size = 96; // in bits. 8 * 12.    
+    let entry_size = 96; // in bits. 8 * 12.
     let mut history_entries: Vec<History> = vec![];
 
     for i in 0..num_entries {
@@ -44,8 +44,8 @@ pub fn create_history_entries(history_bytes: &[u8]) -> Vec<History> {
             boarding_datetime: from_en1545_date_and_time(boarding_date, boarding_time),
             transfer_end_datetime: from_en1545_date_and_time(end_date, end_time),
             ticket_fare_cents: ticket_fare,
-            group_size: group_size,
-            remaining_value: remaining_value
+            group_size,
+            remaining_value,
         });
     }
 

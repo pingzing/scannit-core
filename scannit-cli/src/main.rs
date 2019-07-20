@@ -2,7 +2,7 @@
 // The absolute bare minimum to get it working, and test that it works.
 
 use pcsc::*;
-use scannit_core::desfire;
+use scannit_core::desfire::{Command, Response};
 use scannit_core::travelcard::create_travel_card;
 
 fn main() {
@@ -45,61 +45,47 @@ fn main() {
         }
     };
 
-    let open_hsl_command = desfire::SELECT_HSL_COMMAND;
+    let open_hsl_command = Command::SelectHsl.into();
     println!("Sending APDU: {:X?}", open_hsl_command);
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
 
-    let result = transcieve(&card, &open_hsl_command, &mut response_buffer).unwrap();
+    let result = transcieve(&card, open_hsl_command, &mut response_buffer).unwrap();
 
-    if result[0..2] != desfire::OK_RESPONSE {
+    if result[0..2] != Response::Ok {
         println!("Failed. Received {:X?}", result);
         return;
     }
 
     println!("Success! Reading data...");
 
-    let app_info =
-        transcieve(&card, &desfire::READ_APP_INFO_COMMAND, &mut response_buffer).unwrap();
+    let app_info = transcieve(&card, Command::ReadAppInfo.into(), &mut response_buffer).unwrap();
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
-    let control_info = transcieve(
-        &card,
-        &desfire::READ_CONTROL_INFO_COMMAND,
-        &mut response_buffer,
-    )
-    .unwrap();
+    let control_info =
+        transcieve(&card, Command::ReadControlInfo.into(), &mut response_buffer).unwrap();
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
-    let period_pass = transcieve(
-        &card,
-        &desfire::READ_PERIOD_PASS_COMMAND,
-        &mut response_buffer,
-    )
-    .unwrap();
+    let period_pass =
+        transcieve(&card, Command::ReadPeriodPass.into(), &mut response_buffer).unwrap();
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
-    let stored_value = transcieve(
-        &card,
-        &desfire::READ_STORED_VALUE_COMMAND,
-        &mut response_buffer,
-    )
-    .unwrap();
+    let stored_value =
+        transcieve(&card, Command::ReadPeriodPass.into(), &mut response_buffer).unwrap();
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
-    let e_ticket =
-        transcieve(&card, &desfire::READ_E_TICKET_COMMAND, &mut response_buffer).unwrap();
+    let e_ticket = transcieve(&card, Command::ReadETicket.into(), &mut response_buffer).unwrap();
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
     let history_bytes =
-        transcieve(&card, &desfire::READ_HISTORY_COMMAND, &mut response_buffer).unwrap();
-    let mut history_bytes_2: Vec<u8>;
+        transcieve(&card, Command::ReadHistory.into(), &mut response_buffer).unwrap();
+    let history_bytes_2: Vec<u8>;
 
     // Check for extra history data. It comes in chunks of four.
     let len = history_bytes.len();
     // If the last two bytes of history contain MORE_DATA:
-    let all_history: &[u8] = if &history_bytes[len - 2..len] == &desfire::MORE_DATA_RESPONSE {
+    let all_history: &[u8] = if history_bytes[len - 2..len] == Response::MoreData {
         let mut response_buffer = [0; MAX_BUFFER_SIZE];
-        let bytes = transcieve(&card, &desfire::READ_NEXT_COMMAND, &mut response_buffer).unwrap();
+        let bytes = transcieve(&card, Command::ReadNext.into(), &mut response_buffer).unwrap();
         let len_2 = bytes.len();
         history_bytes_2 = [&history_bytes[0..len - 2], &bytes[0..len_2 - 2]].concat();
         &history_bytes_2

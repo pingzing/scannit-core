@@ -105,7 +105,7 @@ pub fn create_travel_card(
         application_transaction_counter: transaction_counter,
         action_list_counter: action_counter,
 
-        period_pass: period_pass,
+        period_pass,
 
         stored_value_cents: stored_value.cents,
         last_load_datetime: stored_value.last_load_datetime,
@@ -113,8 +113,8 @@ pub fn create_travel_card(
         last_load_organization_id: stored_value.last_load_organization_id,
         last_load_device_num: stored_value.last_load_device_num,
 
-        e_ticket: e_ticket,
-        history: history,
+        e_ticket,
+        history,
     }
 }
 
@@ -187,13 +187,13 @@ fn read_period_pass(period_pass: &[u8]) -> PeriodPass {
 
         loaded_period_product: ProductCode::new(loaded_period_product_type, loaded_period_product),
         loaded_period_datetime: from_en1545_date_and_time(loaded_period_date, loaded_period_time),
-        loaded_period_length: loaded_period_length,
-        loaded_period_price: loaded_period_price,
-        loading_organization: loading_organization,
-        loading_device_number: loading_device_number,
+        loaded_period_length,
+        loaded_period_price,
+        loading_organization,
+        loading_device_number,
 
         last_board_datetime: from_en1545_date_and_time(last_board_date, last_board_time),
-        last_board_vehicle_number: last_board_vehicle_number,
+        last_board_vehicle_number,
         last_board_location: BoardingLocation::new(
             last_board_location_num_type,
             last_board_location_num,

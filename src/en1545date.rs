@@ -5,7 +5,7 @@ use lazy_static::*;
 
 lazy_static! {
     static ref EN1545_ZERO_DATE: NaiveDateTime = NaiveDateTime::new(
-        NaiveDate::from_ymd(1997, 01, 01),
+        NaiveDate::from_ymd(1997, 1, 1),
         NaiveTime::from_hms(0, 0, 0)
     );
 }
@@ -23,7 +23,7 @@ pub fn from_en1545_date(date: u16) -> DateTime<Utc> {
 ///  * `time` - The time in En1545 format (number minutes since 00:00).
 pub fn from_en1545_date_and_time(date: u16, time: u16) -> DateTime<Utc> {
     let local_datetime =
-        *EN1545_ZERO_DATE + Duration::days(date as i64) + Duration::minutes(time as i64);
+        *EN1545_ZERO_DATE + Duration::days(i64::from(date)) + Duration::minutes(i64::from(time));
     // Assuming Helsinki because it's impossible to use an HSL travel card outside of Finland.
     // ...I hope.
     Helsinki
@@ -65,7 +65,7 @@ mod test {
     fn should_handle_winter_datetimes() {
         let value = from_en1545_date_and_time(0, 240); // should be 1997-01-01 4:00AM.
                                                        // Then -2h in UTC because winter time is active
-        let expected = Utc.ymd(1997, 01, 01).and_hms(2, 0, 0);
+        let expected = Utc.ymd(1997, 1, 1).and_hms(2, 0, 0);
         assert_eq!(value, expected);
     }
 }
