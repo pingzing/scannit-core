@@ -39,7 +39,6 @@ strategy:
       targetCapitalized: ARM_LINUX_ANDROIDEABI
       excludes: scannit-core-cli
     
-
 pool:
   vmImage: $(imageName)
 
@@ -81,6 +80,7 @@ steps:
     displayName: Cargo test
 
   - task: ArchiveFiles@2
+    displayName: Zip artifacts
     inputs:
       rootFolderOrFile: 'target/$(target)/debug'
       includeRootFolder: true
@@ -89,6 +89,7 @@ steps:
       replaceExistingArchive: true
 
   - task: PublishBuildArtifacts@1
+    displayName: Publish zip file
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       ArtifactName: 'drop'
