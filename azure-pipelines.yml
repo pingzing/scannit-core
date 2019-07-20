@@ -21,11 +21,17 @@ strategy:
       target: i686-pc-windows-msvc      
     android:
       imageName: "ubuntu-16.04"
-      target: aarch64-linux-android      
+      target: aarch64-linux-android   
+      targetCapitalized: AARCH64-LINUX-ANDROID   
+      arName: aarch64-linux-android-ar
+      linkerName: aarch64-linux-android28-clang
       ignore_examples: True
     android_32:
       imageName: "ubuntu-16.04"
-      target: arm-linux-androideabi      
+      target: arm-linux-androideabi   
+      arName: arm-linux-androideabi-ar
+      linkerName: armv7a-linux-androideabi28-clang
+      targetCapitalized: ARM-LINUX-ANDROIDEABI   
       ignore_examples: True
     
 
@@ -53,14 +59,11 @@ steps:
     displayName: Install libpsclite-dev (Linux only)
     condition: and( ne(variables['ignore_examples'], True), eq(variables['Agent.OS'], 'Linux'))
 
-  - script: ls $(ndk_home)/toolchains/llvm/prebuilt
-    displayName: Exploring NDK
+  - script: |
+      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"
+      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"
+    displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
-
-  # - script: |
-  #     echo "##vso[task.setvariable variable=CARGO_TARGET_AARCH64-LINUX-ANDROID);]$(ndk_home)/toolchains/llvm/prebuilt/"
-  #   displayName: Set Android Linker
-  #   condition: contains( variables['target'], 'android' )
 
   - script: cargo build --all --target $(target)
     displayName: Cargo build
