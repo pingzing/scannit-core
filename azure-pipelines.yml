@@ -22,7 +22,7 @@ strategy:
     android:
       imageName: "ubuntu-16.04"
       target: aarch64-linux-android   
-      targetCapitalized: AARCH64-LINUX-ANDROID   
+      targetCapitalized: AARCH64_LINUX_ANDROID   
       arName: aarch64-linux-android-ar
       linkerName: aarch64-linux-android28-clang
       ignore_examples: True
@@ -31,7 +31,7 @@ strategy:
       target: arm-linux-androideabi   
       arName: arm-linux-androideabi-ar
       linkerName: armv7a-linux-androideabi28-clang
-      targetCapitalized: ARM-LINUX-ANDROIDEABI   
+      targetCapitalized: ARM_LINUX_ANDROIDEABI   
       ignore_examples: True
     
 
@@ -63,7 +63,7 @@ steps:
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"
       echo "AR Path is " $CARGO_TARGET_$(targetCapitalized)_AR
-      echo "Linker Path is " $CARGO_TARGET_ARM-LINUX-ANDROIDEABI_LINKER
+      echo "Linker Path is " $CARGO_TARGET_$(targetCapitalized)_LINKER
     displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
 
