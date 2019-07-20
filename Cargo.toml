@@ -21,8 +21,3 @@ members = ["scannit-core-ffi", "scannit-core-cli"]
 
 [lib]
 crate-type = ["dylib"]
-
-# Required for the CLI example to actually read a smart card.
-# Note: Requires libpcsclite-dev which often has to be explicitly installed on Linux.
-[dev-dependencies]
-pcsc = "2"

@@ -6,4 +6,7 @@ edition = "2018"
 
 [dependencies]
 scannit-core = {path = "../"}
+
+# Required for the CLI example to actually read a smart card.
+# Note: Requires libpcsclite-dev which often has to be explicitly installed on Linux.
 pcsc = "2"
