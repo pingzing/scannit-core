@@ -7,11 +7,7 @@ strategy:
     linux:
       imageName: "ubuntu-16.04"  
       target: x86_64-unknown-linux-gnu 
-      excludes: none         
-    linux_32_(cross):
-      imageName: "ubuntu-16.04"
-      target: i686-unknown-linux-gnu  
-      excludes: scannit-core-cli           
+      excludes: none                   
     mac:
       imageName: "macos-10.13"
       target: x86_64-apple-darwin    
