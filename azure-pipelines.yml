@@ -3,24 +3,31 @@ strategy:
     linux:
       imageName: "ubuntu-16.04"  
       target: x86_64-unknown-linux-gnu    
+      build_cli: true
     linux_32:
       imageName: "ubuntu-16.04"
-      target: i686-unknown-linux-gnu            
+      target: i686-unknown-linux-gnu       
+      build_cli: true     
     mac:
       imageName: "macos-10.13"
       target: x86_64-apple-darwin
+      build_cli: true
     windows:
       imageName: "vs2017-win2016"
       target: x86_64-pc-windows-msvc
+      build_cli: true
     windows_32:
       imageName: "vs2017-win2016"
       target: i686-pc-windows-msvc
+      build_cli: true
     android:
       imageName: "ubuntu-16.04"
       target: aarch64-linux-android
+      build_cli: false
     android_32:
       imageName: "ubuntu-16.04"
       target: arm-linux-androideabi
+      build_cli: false
     
 
 pool:
@@ -42,7 +49,7 @@ steps:
 
   - script: sudo apt-get install libpcsclite-dev
     displayName: Install libpsclite-dev (Linux only)
-    condition: eq(variables['Agent.OS'], 'Linux')
+    condition: and( eq(variables['build_cli'], true), eq(variables['Agent.OS'], 'Linux'))
 
   - script: cargo build --all
     displayName: Cargo build
