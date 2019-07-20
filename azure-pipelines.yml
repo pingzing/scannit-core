@@ -85,9 +85,9 @@ steps:
       rootFolderOrFile: 'target/$(target)/debug'
       includeRootFolder: true
       archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/scannit-core_$(Build.BuildId)_$(target).zip'
       replaceExistingArchive: true
-      
+
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
