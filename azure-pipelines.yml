@@ -73,5 +73,5 @@ steps:
   - script: cargo build --all --target $(target) --exclude $(excludes)
     displayName: Cargo build
 
-  - script: cargo test --all --target $(target) --exclude $(excludes)
+  - script: cargo test --all --exclude $(excludes)
     displayName: Cargo test
