@@ -22,7 +22,7 @@ pub extern "C" fn free_string(s: *mut c_char) {
 #[no_mangle]
 pub extern "C" fn get_vector() -> Buffer {
     let strings_vector = vec!["Rust string one".to_string(), "Rust string two".to_string()];
-    let mut buffer: Vec<*mut i8> = strings_vector
+    let mut buffer: Vec<*mut c_char> = strings_vector
         .into_iter()
         .map(|x| CString::new(x).unwrap().into_raw())
         .collect();
