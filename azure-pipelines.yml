@@ -2,32 +2,27 @@ strategy:
   matrix:
     linux:
       imageName: "ubuntu-16.04"  
-      target: x86_64-unknown-linux-gnu    
-      build_cli: true
+      target: x86_64-unknown-linux-gnu          
     linux_32:
       imageName: "ubuntu-16.04"
-      target: i686-unknown-linux-gnu       
-      build_cli: true     
+      target: i686-unknown-linux-gnu             
     mac:
       imageName: "macos-10.13"
-      target: x86_64-apple-darwin
-      build_cli: true
+      target: x86_64-apple-darwin      
     windows:
       imageName: "vs2017-win2016"
-      target: x86_64-pc-windows-msvc
-      build_cli: true
+      target: x86_64-pc-windows-msvc      
     windows_32:
       imageName: "vs2017-win2016"
-      target: i686-pc-windows-msvc
-      build_cli: true
+      target: i686-pc-windows-msvc      
     android:
       imageName: "ubuntu-16.04"
-      target: aarch64-linux-android
-      build_cli: false
+      target: aarch64-linux-android      
+      ignore_examples: True
     android_32:
       imageName: "ubuntu-16.04"
-      target: arm-linux-androideabi
-      build_cli: false
+      target: arm-linux-androideabi      
+      ignore_examples: True
     
 
 pool:
@@ -51,8 +46,12 @@ steps:
     displayName: Install libpsclite-dev (Linux only)
     condition: and( eq(variables['build_cli'], true), eq(variables['Agent.OS'], 'Linux'))
 
-  - script: cargo build --all
+  - script: cargo build --all --target $(target)
     displayName: Cargo build
 
-  - script: cargo test --all
+  - script: cargo build --examples --target $(target)
+    displayName: Cargo build examples
+    condition: ne( variables['ignore_examples'], True )
+
+  - script: cargo test --all --target $(target)
     displayName: Cargo test
