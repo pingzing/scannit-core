@@ -60,7 +60,7 @@ steps:
     condition: and( ne(variables['ignore_examples'], True), eq(variables['Agent.OS'], 'Linux'))
 
   - script: |
-      echo "testing--  CARGO_TARGET_$(targetCapitalized)_AR""
+      echo "testing--  CARGO_TARGET_$(targetCapitalized)_AR"
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"      
     displayName: Set Android Linker
