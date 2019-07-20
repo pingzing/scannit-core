@@ -49,7 +49,7 @@ steps:
     displayName: Install libpsclite-dev (Linux only)
     condition: and( ne(variables['ignore_examples'], True), eq(variables['Agent.OS'], 'Linux'))
 
-  - script: ls ~/Android/Sdk
+  - script: ls ~
     displayName: List Android SDK
     condition: contains( variables['target'], 'android' )
 
