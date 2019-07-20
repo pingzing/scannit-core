@@ -63,7 +63,7 @@ steps:
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER);]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"
       echo "AR Path is " $CARGO_TARGET_$(targetCapitalized)_AR
-      echo "Linker Path is " $CARGO_TARGET_$(targetCapitalized)_LINKER
+      echo "Linker Path is " $CARGO_TARGET_ARM-LINUX-ANDROIDEABI_LINKER
     displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
 
