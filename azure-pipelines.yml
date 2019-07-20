@@ -1,3 +1,7 @@
+variables:
+  # Found through trial-and-error. May not be stable?
+  ndk_home: /usr/local/lib/android/sdk/ndk-bundle 
+
 strategy:
   matrix:
     linux:
@@ -49,9 +53,14 @@ steps:
     displayName: Install libpsclite-dev (Linux only)
     condition: and( ne(variables['ignore_examples'], True), eq(variables['Agent.OS'], 'Linux'))
 
-  - script: find / -type d -name "ndk-bundle"
-    displayName: List Android SDK
+  - script: ls $(ndk_home)/toolchains/llvm/prebuilt
+    displayName: Exploring NDK
     condition: contains( variables['target'], 'android' )
+
+  # - script: |
+  #     echo "##vso[task.setvariable variable=CARGO_TARGET_AARCH64-LINUX-ANDROID);]$(ndk_home)/toolchains/llvm/prebuilt/"
+  #   displayName: Set Android Linker
+  #   condition: contains( variables['target'], 'android' )
 
   - script: cargo build --all --target $(target)
     displayName: Cargo build
