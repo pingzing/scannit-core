@@ -1,53 +1,48 @@
-use libc::c_char;
-use std::ffi::CString;
+mod ffi;
+pub mod models;
+
+use models::FFITravelCard;
+use scannit_core::travelcard;
 
 #[no_mangle]
-pub extern "C" fn get_string() -> *const c_char {
-    let example_string = String::from("I am a string from Rust.");
-    let c_string = CString::new(example_string).unwrap();
+pub extern "C" fn create_travel_card(
+    app_info_ptr: *const u8,
+    app_info_size: usize,
+    control_info_ptr: *const u8,
+    control_info_size: usize,
+    period_pass_ptr: *const u8,
+    period_pass_size: usize,
+    stored_value_ptr: *const u8,
+    stored_value_size: usize,
+    e_ticket_ptr: *const u8,
+    e_ticket_size: usize,
+    history_ptr: *const u8,
+    history_size: usize,
+) -> FFITravelCard {
+    let app_info;
+    let control_info;
+    let period_pass;
+    let stored_value;
+    let e_ticket;
+    let history;
 
-    c_string.into_raw()
-}
-
-#[no_mangle]
-pub extern "C" fn free_string(s: *mut c_char) {
     unsafe {
-        if s.is_null() {
-            return;
-        }
-        CString::from_raw(s)
-    };
-}
-
-#[no_mangle]
-pub extern "C" fn get_vector() -> Buffer {
-    let strings_vector = vec!["Rust string one".to_string(), "Rust string two".to_string()];
-    let mut buffer: Vec<*mut i8> = strings_vector
-        .into_iter()
-        .map(|x| CString::new(x).unwrap().into_raw())
-        .collect();
-    let data = buffer.as_mut_ptr();
-    let len = buffer.len();
-    std::mem::forget(buffer); // Leak the memory so we don't auto-drop it
-    Buffer { data, len }
-}
-
-#[no_mangle]
-pub extern "C" fn free_vector(buf: Buffer) {
-    let vector = unsafe { std::slice::from_raw_parts_mut(buf.data, buf.len) };
-    for string in vector.iter() {
-        free_string(*string);
+        app_info = std::slice::from_raw_parts(app_info_ptr, app_info_size);
+        control_info = std::slice::from_raw_parts(control_info_ptr, control_info_size);
+        period_pass = std::slice::from_raw_parts(period_pass_ptr, period_pass_size);
+        stored_value = std::slice::from_raw_parts(stored_value_ptr, stored_value_size);
+        e_ticket = std::slice::from_raw_parts(e_ticket_ptr, e_ticket_size);
+        history = std::slice::from_raw_parts(history_ptr, history_size);
     }
-    let vector = vector.as_mut_ptr();
-    unsafe {
-        // Take ownership of the data pointed to by the box,
-        Box::from_raw(vector);
-        // ...and destroy it at the end of scope.
-    }
-}
 
-#[repr(C)]
-pub struct Buffer {
-    data: *mut *mut c_char,    
-    len: usize,
+    let travelcard = travelcard::create_travel_card(
+        app_info,
+        control_info,
+        period_pass,
+        stored_value,
+        e_ticket,
+        history,
+    );
+
+    FFITravelCard::from_travel_card(travelcard)
 }
