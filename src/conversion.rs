@@ -39,7 +39,7 @@ pub fn get_bits_as_u64(bytes: &[u8], bit_offset_index: usize, bit_length: usize)
     }
     // Shift the 1s to the top of the bit-value, and negate the whole number to generate our mask
     if num_bits_to_mask > 0 {
-        and_mask = and_mask << (64 - num_bits_to_mask);
+        and_mask <<= 64 - num_bits_to_mask;
     }
     and_mask = !and_mask;
     let bytes = &bytes[byte_offset..=end_byte_index];
@@ -48,7 +48,7 @@ pub fn get_bits_as_u64(bytes: &[u8], bit_offset_index: usize, bit_length: usize)
     // 1) Weld all the bytes together, moving up the number to make space for new bytes as we go
     let mut welded_bytes = 0u64;
     for (i, byte) in bytes.iter().enumerate() {
-        welded_bytes += (*byte as u64) << (bit_position - (i * 8))
+        welded_bytes += u64::from(*byte) << (bit_position - (i * 8))
     }
 
     // 2) AND off the top bits that aren't part of what we want
@@ -74,8 +74,8 @@ mod test {
 
     #[test]
     fn to_bits_should_handle_u8() {
-        let byte: [u8; 1] = [0b00110100];
-        let expected = 0b00001101;
+        let byte: [u8; 1] = [0b0011_0100];
+        let expected = 0b0000_1101;
         // try to pull out of the four bits that span a nybble boundary
         let actual = get_bits_as_u8(&byte, 2, 4);
         assert_eq!(expected, actual);

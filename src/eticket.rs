@@ -83,9 +83,9 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
     let period_pass_validity_area = get_bits_as_u8(e_ticket, 140, 6);
     let extension_product_code = get_bits_as_u16(e_ticket, 146, 14);
     let extension_1_validity_area = get_bits_as_u8(e_ticket, 160, 6);
-    let extension_1_fare = get_bits_as_u16(e_ticket, 166, 14);
+    let extension_1_fare_cents = get_bits_as_u16(e_ticket, 166, 14);
     let extension_2_validity_area = get_bits_as_u8(e_ticket, 180, 6);
-    let extension_2_fare = get_bits_as_u16(e_ticket, 186, 14);
+    let extension_2_fare_cents = get_bits_as_u16(e_ticket, 186, 14);
     let sale_status = get_bits_as_u8(e_ticket, 200, 1) != 0;
 
     let validity_start_date = get_bits_as_u16(e_ticket, 205, 14);
@@ -111,16 +111,16 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
 
     ETicket {
         product_code: ProductCode::new(product_code_type, product_code),
-        customer_profile: customer_profile,
+        customer_profile,
         language: Language::from_u8(language_code),
         validity_length: ValidityLength::new(validity_length_type, validity_length),
         validity_area: ValidityArea::new(validity_area_type, validity_area_value),
-        sale_datetime: sale_datetime,
+        sale_datetime,
         sale_device: SaleDevice::new(sale_device_type, sale_device_number),
         ticket_fare_cents: ticket_fare,
-        group_size: group_size,
+        group_size,
 
-        extra_zone: extra_zone,
+        extra_zone,
         period_pass_validity_area: ValidityArea::new(
             ValidityArea::OLD_ZONE_TYPE,
             period_pass_validity_area,
@@ -133,22 +133,22 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
             ValidityArea::OLD_ZONE_TYPE,
             extension_1_validity_area,
         ),
-        extension_1_fare_cents: extension_1_fare,
+        extension_1_fare_cents,
         extension_2_validity_area: ValidityArea::new(
             ValidityArea::OLD_ZONE_TYPE,
             extension_2_validity_area,
         ),
-        extension_2_fare_cents: extension_2_fare,
-        sale_status: sale_status,
+        extension_2_fare_cents,
+        sale_status,
 
         validity_start_datetime: from_en1545_date_and_time(
             validity_start_date,
             validity_start_time,
         ),
-        validity_end_datetime: validity_end_datetime,
-        validity_status: validity_status,
+        validity_end_datetime,
+        validity_status,
         boarding_datetime: from_en1545_date_and_time(boarding_date, boarding_time),
-        boarding_vehicle: boarding_vehicle,
+        boarding_vehicle,
         boarding_location: BoardingLocation::new(boarding_location_num_type, boarding_location_num),
         boarding_direction: BoardingDirection::new(boarding_direction),
         boarding_area: BoardingArea::new(boarding_area_type, boarding_area),

@@ -6,6 +6,10 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+#NOTE: In order to build for Android, the NDK must be installed, and a machine-wide 
+# .cargo/config should be created that has Cargo directives for where to find 'ar' and a linker
+# for each Android target triple.
+
 [dependencies]
 chrono = "0.4"
 chrono-tz = "0.5"
@@ -13,7 +17,7 @@ lazy_static = "1.3.0"
 num-traits = "0.2"
 
 [workspace]
-members = ["scannit-core-ffi", "scannit-cli"]
+members = ["scannit-core-ffi", "scannit-core-cli"]
 
 [lib]
 crate-type = ["dylib"]
