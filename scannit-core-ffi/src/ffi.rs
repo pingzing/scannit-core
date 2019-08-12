@@ -28,15 +28,16 @@ extern "C" fn get_vector() -> FFIBuffer<*mut c_char> {
         .into_iter()
         .map(|x| CString::new(x).unwrap().into_raw())
         .collect();
-    let data = buffer.as_ptr();
+    let data = buffer.as_mut_ptr();
     let len = buffer.len();
+    let capacity = buffer.capacity();
     std::mem::forget(buffer); // Leak the memory so we don't auto-drop it
-    FFIBuffer::<*mut c_char> { data, len }
+    FFIBuffer::<*mut c_char> { data, len, capacity }
 }
 
 #[no_mangle]
 pub extern "C" fn free_string_buffer(buf: FFIBuffer<*mut c_char>) {
-    let vector = unsafe { std::slice::from_raw_parts(buf.data, buf.len) };
+    let vector = unsafe { std::vec::Vec::from_raw_parts(buf.data, buf.len, buf.capacity) };
     for string in vector.iter() {
         free_string(*string);
     }
@@ -59,6 +60,7 @@ pub extern "C" fn free_byte_buffer(buf: FFIBuffer<u8>) {
 
 #[repr(C)]
 pub struct FFIBuffer<T> {
-    data: *const T,
+    data: *mut T,
     len: usize, 
+    capacity: usize,
 }

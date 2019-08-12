@@ -52,7 +52,8 @@ pub fn create_history_entries(history_bytes: &[u8]) -> Vec<History> {
     history_entries
 }
 
-#[derive(Debug)]
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum TransactionType {
     SeasonPass = 0,
     ValueTicket = 1,

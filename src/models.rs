@@ -166,7 +166,8 @@ impl VehicleType {
     }
 }
 
-#[derive(Debug)]
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Language {
     Finnish = 0,
     Swedish = 1,
