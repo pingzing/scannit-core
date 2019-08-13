@@ -112,7 +112,7 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
     ETicket {
         product_code: ProductCode::new(product_code_type, product_code),
         customer_profile,
-        language: Language::from_u8(language_code),
+        language: Language::from(language_code),
         validity_length: ValidityLength::new(validity_length_type, validity_length),
         validity_area: ValidityArea::new(validity_area_type, validity_area_value),
         sale_datetime,

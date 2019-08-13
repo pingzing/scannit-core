@@ -2,11 +2,14 @@ use crate::ffi::FFIBuffer;
 use libc::c_char;
 use std::ffi::CString;
 use scannit_core::travelcard::{TravelCard, PeriodPass};
-use scannit_core::models::{Language, ProductCode, ValidityArea};
+use scannit_core::models::{Language, ProductCode, ValidityArea, VehicleType};
 use scannit_core::history::TransactionType;
 
 pub type UnixTimestamp = i64;
 
+/// An FFI-friendly version of a travel card. Note that all dynamically-allocated members
+/// in this struct have already had their memory leaked. It is the responsibility of the
+/// external consumer to manually return this to Rust code to be freed.
 #[repr(C)]
 pub struct FFITravelCard {
     pub application_version: u8,
@@ -39,8 +42,7 @@ impl FFITravelCard {
         FFITravelCard {
             application_version: travel_card.application_version,
             application_key_version: travel_card.application_key_version,
-            // Note that this immediately leaks the memory of the CString. The other FFIBuffers will be
-            // forget()-ed elsewhere.
+            // Note that this immediately leaks the memory of the CString.
             application_instance_id: CString::new(travel_card.application_instance_id).unwrap().into_raw(),
             platform_type: travel_card.platform_type,
             is_mac_protected: travel_card.is_mac_protected,
@@ -96,17 +98,22 @@ pub struct FFIPeriodPass {
 }
 
 impl FFIPeriodPass {
-    fn from_period_pass(period_pass: PeriodPass) -> FFIPeriodPass {
-        let validity_area_1_value = match period_pass.validity_area_1 { 
-            ValidityArea::Vehicle(vehicle) => vec!(vehicle), // todo: Into stuff
-            ValidityArea::Zone(zones) => zones // todo: Into stuff
-        };
+    fn from_period_pass(period_pass: PeriodPass) -> FFIPeriodPass {        
         FFIPeriodPass {
-            //product_code_1_kind: period_pass.product_code_1. //todo implement Into or whatever
-            product_code_1_value: match period_pass.product_code_1 { ProductCode::FaresFor2010(val) | ProductCode::FaresFor2014(val) => val },
-            //validity_area_1_kind: period_pass.validity_area_1 //todo implement Into or whatever
-            validity_area_1_value: 
+            product_code_1_kind: ProductCodeKind::from(period_pass.product_code_1),
+            product_code_1_value: u16::from(period_pass.product_code_1),
+            validity_area_1_kind: ValidityAreaKind::from(period_pass.validity_area_1),
+            validity_area_1_value: FFIBuffer::from(period_pass.validity_area_1),
+            period_start_date_1: period_pass.period_start_date_1.and_hms(0, 0, 0).timestamp(),
 
+            product_code_2_kind: ProductCodeKind::from(period_pass.product_code_2),
+            product_code_2_value: u16::from(period_pass.product_code_2),
+            validity_area_2_kind: ValidityAreaKind::from(period_pass.validity_area_2),
+            validity_area_2_value: FFIBuffer::from(period_pass.validity_area_2),
+            period_start_date_2: period_pass.period_start_date_2.and_hms(0, 0, 0).timestamp(),
+
+            loaded_period_product_kind: ProductCodeKind::from(period_pass.loaded_period_product),
+            loaded_period_product_value: u16::from(period_pass.loaded_period_product),
         }
     }
 }
@@ -175,6 +182,28 @@ pub struct FFIHistory {
     pub remaining_value: u32,
 }
 
+impl From<ValidityArea> for FFIBuffer<u8> {
+    fn from(val: ValidityArea) -> Self {
+        match val {
+            ValidityArea::OldZone(zoneNum) => {
+                let zoneNumsVec = vec!(zoneNum);
+                unsafe { std::mem::forget(zoneNumsVec); }
+                FFIBuffer::from(zoneNumsVec)
+            },
+            ValidityArea::Vehicle(vehicleType) => {
+                let vehicleNumsVec = vec!(u8::from(vehicleType));
+                unsafe { std::mem::forget(vehicleNumsVec); }
+                FFIBuffer::from(vehicleNumsVec)
+            },
+            ValidityArea::Zone(zones) => {
+                let zonesVec = zones.iter().map(|x| u8::from(*x)).collect();
+                unsafe { std::mem::forget(zonesVec); }
+                FFIBuffer::from(zonesVec)
+            }        
+        }
+    }
+}
+
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ProductCodeKind {
@@ -182,12 +211,31 @@ pub enum ProductCodeKind {
     FaresFor2014 = 1,
 }
 
+impl From<ProductCode> for ProductCodeKind {
+    fn from(val: ProductCode) -> Self {
+        match val {
+            ProductCode::FaresFor2010(_) => ProductCodeKind::FaresFor2010,
+            ProductCode::FaresFor2014(_) => ProductCodeKind::FaresFor2014
+        }
+    }
+}
+
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ValidityAreaKind {
-    OldZoneKind = 0,
+    OldZone = 0,
     VehicleType = 1,
-    NewZoneKind = 2,
+    NewZone = 2,
+}
+
+impl From<ValidityArea> for ValidityAreaKind {
+    fn from(val: ValidityArea) -> Self {
+        match val {
+            ValidityArea::OldZone(_) => ValidityAreaKind::OldZone,
+            ValidityArea::Vehicle(_) => ValidityAreaKind::VehicleType,
+            ValidityArea::Zone(_) => ValidityAreaKind::NewZone,
+        }
+    }
 }
 
 #[repr(u32)]

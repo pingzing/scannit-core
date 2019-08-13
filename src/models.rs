@@ -20,6 +20,14 @@ impl ProductCode {
     }
 }
 
+impl From<ProductCode> for u16 {
+    fn from(val: ProductCode) -> Self {
+        match val { 
+            ProductCode::FaresFor2010(v) | ProductCode::FaresFor2014(v) => v 
+        }
+    }
+}
+
 /// The number of a boarded element.
 #[derive(Debug)]
 pub enum BoardingLocation {
@@ -63,6 +71,7 @@ impl BoardingDirection {
 /// Represents an area in which, or a vehicle for which, a ticket is valid.
 #[derive(Debug)]
 pub enum ValidityArea {
+    OldZone(u8),
     Zone(Vec<ValidityZone>),
     Vehicle(VehicleType),
 }
@@ -75,13 +84,14 @@ impl ValidityArea {
     pub(crate) fn new(area_type: u8, area_value: u8) -> ValidityArea {
         let mut zones: Vec<ValidityZone> = Vec::new();
         match area_type {
-            ValidityArea::VEHICLE_TYPE => ValidityArea::Vehicle(VehicleType::from_u8(area_value)),
-            // TODO: Handle 0 correctly. It represents an old zone (i.e. Zone 1, Zone 2, Region etc)
-            ValidityArea::OLD_ZONE_TYPE | ValidityArea::NEW_ZONE_TYPE => {
+            // TODO: Wrap this a bit more nicely. It represents an old zone (i.e. Zone 1, Zone 2, Region etc)
+            ValidityArea::OLD_ZONE_TYPE => ValidityArea::OldZone(area_value),
+            ValidityArea::VEHICLE_TYPE => ValidityArea::Vehicle(VehicleType::from(area_value)),
+            ValidityArea::NEW_ZONE_TYPE => {
                 let from_zone = (area_value & 0b0011_1000) >> 3; // leftmost 3 bits
                 let to_zone = area_value & 0b0000_0111; // 3 bits to the right of that
                 for val in from_zone..=to_zone {
-                    zones.push(ValidityZone::from_u8(val));
+                    zones.push(ValidityZone::from(val));
                 }
                 ValidityArea::Zone(zones)
             }
@@ -103,8 +113,8 @@ pub enum ValidityZone {
     ZoneH = 7,
 }
 
-impl ValidityZone {
-    pub(crate) fn from_u8(value: u8) -> ValidityZone {
+impl From<u8> for ValidityZone {
+    fn from(value: u8) -> Self {
         match value {
             0 => ValidityZone::ZoneA,
             1 => ValidityZone::ZoneB,
@@ -115,6 +125,21 @@ impl ValidityZone {
             6 => ValidityZone::ZoneG,
             7 => ValidityZone::ZoneH,
             e => panic!("Given value ({}) for ValidityZone not supported.", e),
+        }
+    }
+}
+
+impl From<ValidityZone> for u8 {
+    fn from(value: ValidityZone) -> Self {
+        match value {
+            ValidityZone::ZoneA => 0,
+            ValidityZone::ZoneB => 1,
+            ValidityZone::ZoneC => 2,
+            ValidityZone::ZoneD => 3,
+            ValidityZone::ZoneE => 4,
+            ValidityZone::ZoneF => 5,
+            ValidityZone::ZoneG => 6,
+            ValidityZone::ZoneH => 7,            
         }
     }
 }
@@ -151,8 +176,8 @@ pub enum VehicleType {
     ULine = 9,
 }
 
-impl VehicleType {
-    pub(crate) fn from_u8(value: u8) -> VehicleType {
+impl From<u8> for VehicleType {
+    fn from(value: u8) -> Self {
         match value {
             0 => VehicleType::Undefined,
             1 => VehicleType::Bus,
@@ -166,6 +191,20 @@ impl VehicleType {
     }
 }
 
+impl From<VehicleType> for u8 {
+    fn from(value: VehicleType) -> Self {
+        match value {
+            VehicleType::Undefined => 0,
+            VehicleType::Bus => 1,
+            VehicleType::Tram => 5,
+            VehicleType::Metro => 6,
+            VehicleType::Train => 7,
+            VehicleType::Ferry => 8,
+            VehicleType::ULine => 9,
+        }
+    }
+}
+
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Language {
@@ -174,8 +213,8 @@ pub enum Language {
     English = 2,
 }
 
-impl Language {
-    pub(crate) fn from_u8(value: u8) -> Language {
+impl From<u8> for Language {
+    fn from(value: u8) -> Self {
         match value {
             0 => Language::Finnish,
             1 => Language::Swedish,
@@ -225,8 +264,8 @@ pub enum BoardingArea {
 impl BoardingArea {
     pub(crate) fn new(area_type: u8, area_value: u8) -> BoardingArea {
         match area_type {
-            0 => BoardingArea::Zone(ValidityZone::from_u8(area_value)),
-            1 => BoardingArea::Vehicle(VehicleType::from_u8(area_type)),
+            0 => BoardingArea::Zone(ValidityZone::from(area_value)),
+            1 => BoardingArea::Vehicle(VehicleType::from(area_type)),
             2 => BoardingArea::ZoneCircle(area_value),
             e => panic!("Given value ({}) for BoardingArea type not supported.", e),
         }

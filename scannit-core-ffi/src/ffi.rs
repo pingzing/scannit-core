@@ -64,3 +64,16 @@ pub struct FFIBuffer<T> {
     len: usize, 
     capacity: usize,
 }
+
+impl<T> From<Vec<T>> for FFIBuffer<T> {
+    /// Transform the given vector into an FFI-friendly buffer.
+    /// Does NOT call forget() on the underlying vector.
+    fn from(val: Vec<T>) -> Self {
+        let data = val.as_mut_ptr();
+        let len = val.len();
+        let capacity = val.capacity();
+        FFIBuffer::<T> {
+            data, len, capacity
+        }
+    }
+}
