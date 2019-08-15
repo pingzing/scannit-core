@@ -2,8 +2,9 @@ use crate::ffi::FFIBuffer;
 use libc::c_char;
 use std::ffi::CString;
 use scannit_core::travelcard::{TravelCard, PeriodPass};
-use scannit_core::models::{Language, ProductCode, ValidityArea, VehicleType};
-use scannit_core::history::TransactionType;
+use scannit_core::models::{Language, ProductCode, ValidityArea, ValidityLength, BoardingLocation, BoardingDirection, SaleDevice, BoardingArea};
+use scannit_core::history::{TransactionType, History};
+use scannit_core::eticket::ETicket;
 
 pub type UnixTimestamp = i64;
 
@@ -34,7 +35,7 @@ pub struct FFITravelCard {
 
     pub e_ticket: FFIETicket,
 
-    pub history: FFIBuffer<*mut FFIHistory>
+    pub history: FFIBuffer<FFIHistory>
 }
 
 impl FFITravelCard {
@@ -54,6 +55,16 @@ impl FFITravelCard {
             action_list_counter: travel_card.action_list_counter,
 
             period_pass: FFIPeriodPass::from_period_pass(travel_card.period_pass),
+
+            stored_value_cents: travel_card.stored_value_cents,
+            last_load_datetime: travel_card.last_load_datetime.timestamp(),
+            last_load_value: travel_card.last_load_value,
+            last_load_organization_id: travel_card.last_load_organization_id,
+            last_load_device_num: travel_card.last_load_device_num,
+
+            e_ticket: FFIETicket::from_e_ticket(travel_card.e_ticket),
+
+            history: FFIBuffer::from(travel_card.history),
          }
     }
 }
@@ -91,8 +102,7 @@ pub struct FFIPeriodPass {
     pub last_board_vehicle_number: u16,
     pub last_board_location_kind: BoardingLocationKind,
     pub last_board_location_value: u16,
-    pub last_board_location_direction_kind: BoardingDirectionKind,
-    pub last_board_location_direction_value: u8,
+    pub last_board_direction: BoardingDirection,    
     pub last_board_area_kind: ValidityAreaKind,
     pub last_board_area_value: FFIBuffer<u8>,
 }
@@ -100,20 +110,33 @@ pub struct FFIPeriodPass {
 impl FFIPeriodPass {
     fn from_period_pass(period_pass: PeriodPass) -> FFIPeriodPass {        
         FFIPeriodPass {
-            product_code_1_kind: ProductCodeKind::from(period_pass.product_code_1),
+            product_code_1_kind: ProductCodeKind::from(&period_pass.product_code_1),
             product_code_1_value: u16::from(period_pass.product_code_1),
             validity_area_1_kind: ValidityAreaKind::from(period_pass.validity_area_1),
             validity_area_1_value: FFIBuffer::from(period_pass.validity_area_1),
             period_start_date_1: period_pass.period_start_date_1.and_hms(0, 0, 0).timestamp(),
 
-            product_code_2_kind: ProductCodeKind::from(period_pass.product_code_2),
+            product_code_2_kind: ProductCodeKind::from(&period_pass.product_code_2),
             product_code_2_value: u16::from(period_pass.product_code_2),
             validity_area_2_kind: ValidityAreaKind::from(period_pass.validity_area_2),
             validity_area_2_value: FFIBuffer::from(period_pass.validity_area_2),
             period_start_date_2: period_pass.period_start_date_2.and_hms(0, 0, 0).timestamp(),
 
-            loaded_period_product_kind: ProductCodeKind::from(period_pass.loaded_period_product),
+            loaded_period_product_kind: ProductCodeKind::from(&period_pass.loaded_period_product),
             loaded_period_product_value: u16::from(period_pass.loaded_period_product),
+            loaded_period_datetime: period_pass.loaded_period_datetime.timestamp(),
+            loaded_period_length: period_pass.loaded_period_length,
+            loaded_period_price: period_pass.loaded_period_price,
+            loading_organization: period_pass.loading_organization,
+            loading_device_number: period_pass.loading_device_number,
+
+            last_board_datetime: period_pass.last_board_datetime.timestamp(),
+            last_board_vehicle_number: period_pass.last_board_vehicle_number,
+            last_board_location_kind: BoardingLocationKind::from(period_pass.last_board_location),
+            last_board_location_value: u16::from(period_pass.last_board_location),
+            last_board_direction: BoardingDirection::from(period_pass.last_board_direction),
+            last_board_area_kind: ValidityAreaKind::from(period_pass.last_board_area),
+            last_board_area_value: FFIBuffer::from(period_pass.last_board_area),
         }
     }
 }
@@ -167,10 +190,53 @@ pub struct FFIETicket {
     pub boarding_vehicle: u16,
     pub boarding_location_kind: BoardingLocationKind,
     pub boarding_location_value: u16,
-    pub boarding_direction_kind: BoardingLocationKind,
-    pub boarding_direction_value: u8,
+    pub boarding_direction: BoardingDirection,    
     pub boarding_area_kind: BoardingAreaKind,
     pub boarding_area_value: u8,
+}
+
+impl FFIETicket {
+    fn from_e_ticket(e_ticket: ETicket) -> FFIETicket {
+        FFIETicket {
+            product_code_kind: ProductCodeKind::from(&e_ticket.product_code),
+            product_code_value: u16::from(e_ticket.product_code),
+            customer_profile: e_ticket.customer_profile,
+            language: e_ticket.language,
+            validity_length_kind: ValidityLengthKind::from(e_ticket.validity_length),
+            validity_length_value: u8::from(e_ticket.validity_length),
+            validity_area_kind: ValidityAreaKind::from(e_ticket.validity_area),
+            validity_area_value: FFIBuffer::from(e_ticket.validity_area),
+            sale_datetime: e_ticket.sale_datetime.timestamp(),
+            sale_device_kind: SaleDeviceKind::from(e_ticket.sale_device),
+            sale_device_value: u16::from(e_ticket.sale_device),
+            ticket_fare_cents: e_ticket.ticket_fare_cents,
+            group_size: e_ticket.group_size,
+
+            extra_zone: e_ticket.extra_zone,
+            period_pass_validity_area_kind: ValidityAreaKind::from(e_ticket.period_pass_validity_area),
+            period_pass_validity_area_value: FFIBuffer::from(e_ticket.period_pass_validity_area),
+            extension_product_code_kind: ProductCodeKind::from(&e_ticket.extension_product_code),
+            extension_product_code_value: u16::from(e_ticket.extension_product_code),
+            extension_1_validity_area_kind: ValidityAreaKind::from(e_ticket.extension_1_validity_area),
+            extension_1_validity_area_value: FFIBuffer::from(e_ticket.extension_1_validity_area),
+            extension_1_fare_cents: e_ticket.extension_1_fare_cents,
+            extension_2_validity_area_kind: ValidityAreaKind::from(e_ticket.extension_2_validity_area),
+            extension_2_validity_area_value: FFIBuffer::from(e_ticket.extension_2_validity_area),
+            extension_2_fare_cents: e_ticket.extension_2_fare_cents,
+            sale_status: e_ticket.sale_status,
+            validity_start_datetime: e_ticket.validity_start_datetime.timestamp(),
+            validity_end_datetime: e_ticket.validity_end_datetime.timestamp(),
+            validity_status: e_ticket.validity_status,
+
+            boarding_datetime: e_ticket.boarding_datetime.timestamp(),
+            boarding_vehicle: e_ticket.boarding_vehicle,
+            boarding_location_kind: BoardingLocationKind::from(e_ticket.boarding_location),
+            boarding_location_value: u16::from(e_ticket.boarding_location),
+            boarding_direction: e_ticket.boarding_direction,
+            boarding_area_kind: BoardingAreaKind::from(e_ticket.boarding_area),
+            boarding_area_value: u8::from(e_ticket.boarding_area),
+        }
+    }
 }
 
 pub struct FFIHistory {
@@ -182,25 +248,50 @@ pub struct FFIHistory {
     pub remaining_value: u32,
 }
 
+impl FFIHistory {
+    fn from_history(history: History) -> FFIHistory {
+        FFIHistory {
+            transaction_type: history.transaction_type,
+            boarding_datetime: history.boarding_datetime.timestamp(),
+            transfer_end_datetime: history.transfer_end_datetime.timestamp(),
+            ticket_fare_cents: history.ticket_fare_cents,
+            group_size: history.group_size,
+            remaining_value: history.remaining_value,
+        }
+    }
+}
+
 impl From<ValidityArea> for FFIBuffer<u8> {
     fn from(val: ValidityArea) -> Self {
         match val {
             ValidityArea::OldZone(zoneNum) => {
-                let zoneNumsVec = vec!(zoneNum);
-                unsafe { std::mem::forget(zoneNumsVec); }
-                FFIBuffer::from(zoneNumsVec)
+                let mut zoneNumsVec = vec!(zoneNum);
+                let ffi_buffer = FFIBuffer::from(&mut zoneNumsVec);
+                std::mem::forget(zoneNumsVec);
+                ffi_buffer
             },
             ValidityArea::Vehicle(vehicleType) => {
-                let vehicleNumsVec = vec!(u8::from(vehicleType));
-                unsafe { std::mem::forget(vehicleNumsVec); }
-                FFIBuffer::from(vehicleNumsVec)
+                let mut vehicleNumsVec = vec!(u8::from(vehicleType));
+                let ffi_buffer = FFIBuffer::from(&mut vehicleNumsVec);
+                std::mem::forget(vehicleNumsVec);
+                ffi_buffer
             },
             ValidityArea::Zone(zones) => {
-                let zonesVec = zones.iter().map(|x| u8::from(*x)).collect();
-                unsafe { std::mem::forget(zonesVec); }
-                FFIBuffer::from(zonesVec)
+                let mut zonesVec: Vec<u8> = zones.iter().map(|x| u8::from(*x)).collect();
+                let ffi_buffer = FFIBuffer::from(&mut zonesVec);
+                std::mem::forget(zonesVec);
+                ffi_buffer
             }        
         }
+    }
+}
+
+impl From<Vec<History>> for FFIBuffer<FFIHistory> {
+    fn from(val: Vec<History>) -> Self {
+        let ffi_histories: Vec<FFIHistory> = val.iter().map(|x| FFIHistory::from_history(*x)).collect();
+        let ffi_buffer = FFIBuffer::from(&mut ffi_histories);
+        std::mem::forget(ffi_histories);
+        ffi_buffer
     }
 }
 
@@ -211,8 +302,8 @@ pub enum ProductCodeKind {
     FaresFor2014 = 1,
 }
 
-impl From<ProductCode> for ProductCodeKind {
-    fn from(val: ProductCode) -> Self {
+impl From<&ProductCode> for ProductCodeKind {
+    fn from(val: &ProductCode) -> Self {
         match val {
             ProductCode::FaresFor2010(_) => ProductCodeKind::FaresFor2010,
             ProductCode::FaresFor2014(_) => ProductCodeKind::FaresFor2014
@@ -247,11 +338,15 @@ pub enum BoardingLocationKind {
     PlatformNumber = 3,
 }
 
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum BoardingDirectionKind {
-    TowardEnd = 0,
-    TowardStart = 1,
+impl From<BoardingLocation> for BoardingLocationKind {
+    fn from(val: BoardingLocation) -> Self {
+        match val {
+            BoardingLocation::NoneOrReserved => BoardingLocationKind::NoneOrReserved,
+            BoardingLocation::BusNumber(_) => BoardingLocationKind::BusNumber,
+            BoardingLocation::TrainNumber(_) => BoardingLocationKind::TrainNumber,
+            BoardingLocation::PlatformNumber(_) => BoardingLocationKind::PlatformNumber,
+        }
+    }
 }
 
 #[repr(u32)]
@@ -261,6 +356,17 @@ pub enum ValidityLengthKind {
     Hours = 1,
     TwentyFourHourPeriods = 2,
     Days = 3,
+}
+
+impl From<ValidityLength> for ValidityLengthKind {
+    fn from(val: ValidityLength) -> Self {
+        match val {
+            ValidityLength::Minutes(_) => ValidityLengthKind::Minutes,
+            ValidityLength::Hours(_) => ValidityLengthKind::Hours,
+            ValidityLength::TwentyFourHourPeriods(_) => ValidityLengthKind::TwentyFourHourPeriods,
+            ValidityLength::Days(_) => ValidityLengthKind::Days,
+        }
+    }
 }
 
 #[repr(u32)]
@@ -276,10 +382,35 @@ pub enum SaleDeviceKind {
     Reserved = 7,
 }
 
+impl From<SaleDevice> for SaleDeviceKind {
+    fn from(val: SaleDevice) -> Self {
+        match val {
+            SaleDevice::ServicePointSalesDevice(_) => SaleDeviceKind::ServicePointSalesDevice,
+            SaleDevice::DriverTicketMachine(_) => SaleDeviceKind::DriverTicketMachine,
+            SaleDevice::CardReader(_) => SaleDeviceKind::CardReader,
+            SaleDevice::TicketMachine(_) => SaleDeviceKind::TicketMachine,
+            SaleDevice::Server(_) => SaleDeviceKind::Server,
+            SaleDevice::HSLSmallEquipment(_) => SaleDeviceKind::HSLSmallEquipment,
+            SaleDevice::ExternalServiceEquipment(_) => SaleDeviceKind::ExternalServiceEquipment,
+            SaleDevice::Reserved(_) => SaleDeviceKind::Reserved,
+        }
+    }
+}
+
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum BoardingAreaKind {
     Zone = 0,
     Vehicle = 1,
     ZoneCircle = 2,
+}
+
+impl From<BoardingArea> for BoardingAreaKind {
+    fn from(val: BoardingArea) -> Self {
+        match val {
+            BoardingArea::Zone(_) => BoardingAreaKind::Zone,
+            BoardingArea::Vehicle(_) => BoardingAreaKind::Vehicle,
+            BoardingArea::ZoneCircle(_) => BoardingAreaKind::ZoneCircle,
+        }
+    }
 }

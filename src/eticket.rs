@@ -150,7 +150,7 @@ pub fn create_e_ticket(e_ticket: &[u8]) -> ETicket {
         boarding_datetime: from_en1545_date_and_time(boarding_date, boarding_time),
         boarding_vehicle,
         boarding_location: BoardingLocation::new(boarding_location_num_type, boarding_location_num),
-        boarding_direction: BoardingDirection::new(boarding_direction),
+        boarding_direction: BoardingDirection::from(boarding_direction),
         boarding_area: BoardingArea::new(boarding_area_type, boarding_area),
     }
 }

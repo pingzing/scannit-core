@@ -198,7 +198,7 @@ fn read_period_pass(period_pass: &[u8]) -> PeriodPass {
             last_board_location_num_type,
             last_board_location_num,
         ),
-        last_board_direction: BoardingDirection::new(last_board_direction),
+        last_board_direction: BoardingDirection::from(last_board_direction),
         last_board_area: ValidityArea::new(last_board_area_type, last_board_area),
     }
 }

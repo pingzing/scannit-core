@@ -22,8 +22,8 @@ impl ProductCode {
 
 impl From<ProductCode> for u16 {
     fn from(val: ProductCode) -> Self {
-        match val { 
-            ProductCode::FaresFor2010(v) | ProductCode::FaresFor2014(v) => v 
+        match val {
+            ProductCode::FaresFor2010(v) | ProductCode::FaresFor2014(v) => v,
         }
     }
 }
@@ -49,17 +49,29 @@ impl BoardingLocation {
     }
 }
 
-#[derive(Debug)]
+impl From<BoardingLocation> for u16 {
+    fn from(val: BoardingLocation) -> Self {
+        match val {
+            BoardingLocation::NoneOrReserved => 0,
+            BoardingLocation::BusNumber(num)
+            | BoardingLocation::TrainNumber(num)
+            | BoardingLocation::PlatformNumber(num) => num,
+        }
+    }
+}
+
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 /// This enum is pure speculation--the underlying value is a single bit. What else _could_ it mean?
 pub enum BoardingDirection {
     /// Indicates that at the time of boarding, the transit medium  was headed toward the end of its route.
-    TowardEnd,
+    TowardEnd = 0,
     /// Indicates that at the time of boarding, the transit medium was headed toward the start of its route.
-    TowardStart,
+    TowardStart = 1,
 }
 
-impl BoardingDirection {
-    pub(crate) fn new(value: u8) -> BoardingDirection {
+impl From<u8> for BoardingDirection {
+    fn from(value: u8) -> Self {
         match value {
             0 => BoardingDirection::TowardEnd,
             1 => BoardingDirection::TowardStart,
@@ -139,7 +151,7 @@ impl From<ValidityZone> for u8 {
             ValidityZone::ZoneE => 4,
             ValidityZone::ZoneF => 5,
             ValidityZone::ZoneG => 6,
-            ValidityZone::ZoneH => 7,            
+            ValidityZone::ZoneH => 7,
         }
     }
 }
@@ -160,6 +172,17 @@ impl ValidityLength {
             2 => ValidityLength::TwentyFourHourPeriods(length_value),
             3 => ValidityLength::Days(length_value),
             e => panic!("Given value ({}) for ValidityLength type not supported.", e),
+        }
+    }
+}
+
+impl From<ValidityLength> for u8 {
+    fn from(value: ValidityLength) -> Self {
+        match value {
+            ValidityLength::Minutes(num) => num,
+            ValidityLength::Hours(num) => num,
+            ValidityLength::TwentyFourHourPeriods(num) => num,
+            ValidityLength::Days(num) => num,
         }
     }
 }
@@ -253,6 +276,21 @@ impl SaleDevice {
     }
 }
 
+impl From<SaleDevice> for u16 {
+    fn from(val: SaleDevice) -> Self {
+        match val {
+            SaleDevice::ServicePointSalesDevice(num) => num,
+            SaleDevice::DriverTicketMachine(num) => num,
+            SaleDevice::CardReader(num) => num,
+            SaleDevice::TicketMachine(num) => num,
+            SaleDevice::Server(num) => num,
+            SaleDevice::HSLSmallEquipment(num) => num,
+            SaleDevice::ExternalServiceEquipment(num) => num,
+            SaleDevice::Reserved(num) => num,
+        }
+    }
+}
+
 /// The type and value of area where boarding last happened.
 #[derive(Debug)]
 pub enum BoardingArea {
@@ -268,6 +306,16 @@ impl BoardingArea {
             1 => BoardingArea::Vehicle(VehicleType::from(area_type)),
             2 => BoardingArea::ZoneCircle(area_value),
             e => panic!("Given value ({}) for BoardingArea type not supported.", e),
+        }
+    }
+}
+
+impl From<BoardingArea> for u8 {
+    fn from(val: BoardingArea) -> Self {
+        match val {
+            BoardingArea::Zone(zone) => u8::from(zone),
+            BoardingArea::Vehicle(vehicle_type) => u8::from(vehicle_type),
+            BoardingArea::ZoneCircle(zone_value) => zone_value,
         }
     }
 }
