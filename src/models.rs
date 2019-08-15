@@ -20,10 +20,10 @@ impl ProductCode {
     }
 }
 
-impl From<ProductCode> for u16 {
-    fn from(val: ProductCode) -> Self {
+impl From<&ProductCode> for u16 {
+    fn from(val: &ProductCode) -> Self {
         match val {
-            ProductCode::FaresFor2010(v) | ProductCode::FaresFor2014(v) => v,
+            ProductCode::FaresFor2010(v) | ProductCode::FaresFor2014(v) => *v,
         }
     }
 }
@@ -49,13 +49,13 @@ impl BoardingLocation {
     }
 }
 
-impl From<BoardingLocation> for u16 {
-    fn from(val: BoardingLocation) -> Self {
+impl From<&BoardingLocation> for u16 {
+    fn from(val: &BoardingLocation) -> Self {
         match val {
             BoardingLocation::NoneOrReserved => 0,
             BoardingLocation::BusNumber(num)
             | BoardingLocation::TrainNumber(num)
-            | BoardingLocation::PlatformNumber(num) => num,
+            | BoardingLocation::PlatformNumber(num) => *num,
         }
     }
 }
@@ -141,8 +141,8 @@ impl From<u8> for ValidityZone {
     }
 }
 
-impl From<ValidityZone> for u8 {
-    fn from(value: ValidityZone) -> Self {
+impl From<&ValidityZone> for u8 {
+    fn from(value: &ValidityZone) -> Self {
         match value {
             ValidityZone::ZoneA => 0,
             ValidityZone::ZoneB => 1,
@@ -176,13 +176,13 @@ impl ValidityLength {
     }
 }
 
-impl From<ValidityLength> for u8 {
-    fn from(value: ValidityLength) -> Self {
+impl From<&ValidityLength> for u8 {
+    fn from(value: &ValidityLength) -> Self {
         match value {
-            ValidityLength::Minutes(num) => num,
-            ValidityLength::Hours(num) => num,
-            ValidityLength::TwentyFourHourPeriods(num) => num,
-            ValidityLength::Days(num) => num,
+            ValidityLength::Minutes(num) => *num,
+            ValidityLength::Hours(num) => *num,
+            ValidityLength::TwentyFourHourPeriods(num) => *num,
+            ValidityLength::Days(num) => *num,
         }
     }
 }
@@ -214,8 +214,8 @@ impl From<u8> for VehicleType {
     }
 }
 
-impl From<VehicleType> for u8 {
-    fn from(value: VehicleType) -> Self {
+impl From<&VehicleType> for u8 {
+    fn from(value: &VehicleType) -> Self {
         match value {
             VehicleType::Undefined => 0,
             VehicleType::Bus => 1,
@@ -276,17 +276,17 @@ impl SaleDevice {
     }
 }
 
-impl From<SaleDevice> for u16 {
-    fn from(val: SaleDevice) -> Self {
+impl From<&SaleDevice> for u16 {
+    fn from(val: &SaleDevice) -> Self {
         match val {
-            SaleDevice::ServicePointSalesDevice(num) => num,
-            SaleDevice::DriverTicketMachine(num) => num,
-            SaleDevice::CardReader(num) => num,
-            SaleDevice::TicketMachine(num) => num,
-            SaleDevice::Server(num) => num,
-            SaleDevice::HSLSmallEquipment(num) => num,
-            SaleDevice::ExternalServiceEquipment(num) => num,
-            SaleDevice::Reserved(num) => num,
+            SaleDevice::ServicePointSalesDevice(num) => *num,
+            SaleDevice::DriverTicketMachine(num) => *num,
+            SaleDevice::CardReader(num) => *num,
+            SaleDevice::TicketMachine(num) => *num,
+            SaleDevice::Server(num) => *num,
+            SaleDevice::HSLSmallEquipment(num) => *num,
+            SaleDevice::ExternalServiceEquipment(num) => *num,
+            SaleDevice::Reserved(num) => *num,
         }
     }
 }
@@ -310,12 +310,12 @@ impl BoardingArea {
     }
 }
 
-impl From<BoardingArea> for u8 {
-    fn from(val: BoardingArea) -> Self {
+impl From<&BoardingArea> for u8 {
+    fn from(val: &BoardingArea) -> Self {
         match val {
             BoardingArea::Zone(zone) => u8::from(zone),
             BoardingArea::Vehicle(vehicle_type) => u8::from(vehicle_type),
-            BoardingArea::ZoneCircle(zone_value) => zone_value,
+            BoardingArea::ZoneCircle(zone_value) => *zone_value,
         }
     }
 }

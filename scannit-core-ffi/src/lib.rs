@@ -5,7 +5,7 @@ use models::FFITravelCard;
 use scannit_core::travelcard;
 
 #[no_mangle]
-pub extern "C" fn create_travel_card(
+pub unsafe extern "C" fn create_travel_card(
     app_info_ptr: *const u8,
     app_info_size: usize,
     control_info_ptr: *const u8,
@@ -26,14 +26,14 @@ pub extern "C" fn create_travel_card(
     let e_ticket;
     let history;
 
-    unsafe {
+    // Actual unsafety begins here
         app_info = std::slice::from_raw_parts(app_info_ptr, app_info_size);
         control_info = std::slice::from_raw_parts(control_info_ptr, control_info_size);
         period_pass = std::slice::from_raw_parts(period_pass_ptr, period_pass_size);
         stored_value = std::slice::from_raw_parts(stored_value_ptr, stored_value_size);
         e_ticket = std::slice::from_raw_parts(e_ticket_ptr, e_ticket_size);
         history = std::slice::from_raw_parts(history_ptr, history_size);
-    }
+    // Unsafety ends here
 
     let travelcard = travelcard::create_travel_card(
         app_info,

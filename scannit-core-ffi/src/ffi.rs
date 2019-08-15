@@ -1,3 +1,4 @@
+use crate::models::FFITravelCard;
 use libc::c_char;
 use std::ffi::CString;
 
@@ -32,12 +33,16 @@ extern "C" fn get_vector() -> FFIBuffer<*mut c_char> {
     let len = buffer.len();
     let capacity = buffer.capacity();
     std::mem::forget(buffer); // Leak the memory so we don't auto-drop it
-    FFIBuffer::<*mut c_char> { data, len, capacity }
+    FFIBuffer::<*mut c_char> {
+        data,
+        len,
+        capacity,
+    }
 }
 
 #[no_mangle]
 pub extern "C" fn free_string_buffer(buf: FFIBuffer<*mut c_char>) {
-    let vector = unsafe { std::vec::Vec::from_raw_parts(buf.data, buf.len, buf.capacity) };
+    let mut vector = unsafe { std::vec::Vec::from_raw_parts(buf.data, buf.len, buf.capacity) };
     for string in vector.iter() {
         free_string(*string);
     }
@@ -51,17 +56,23 @@ pub extern "C" fn free_string_buffer(buf: FFIBuffer<*mut c_char>) {
 
 #[no_mangle]
 pub extern "C" fn free_byte_buffer(buf: FFIBuffer<u8>) {
-    let vector = unsafe { std::slice::from_raw_parts(buf.data, buf.len) };
-    let vector = vector.as_mut_ptr();
+    let mut vector = unsafe { std::vec::Vec::from_raw_parts(buf.data, buf.len, buf.capacity) };
+    let reconstituted_vector = vector.as_mut_ptr();
     unsafe {
-        Box::from_raw(vector);
+        Box::from_raw(reconstituted_vector);
     }
+}
+
+#[no_mangle]
+pub extern "C" fn free_travel_card(travel_card: FFITravelCard) {
+    // Deallocate: The string
+    // and all the FFIBuffers
 }
 
 #[repr(C)]
 pub struct FFIBuffer<T> {
     data: *mut T,
-    len: usize, 
+    len: usize,
     capacity: usize,
 }
 
@@ -73,7 +84,9 @@ impl<T> From<&mut Vec<T>> for FFIBuffer<T> {
         let len = val.len();
         let capacity = val.capacity();
         FFIBuffer::<T> {
-            data, len, capacity
+            data,
+            len,
+            capacity,
         }
     }
 }
