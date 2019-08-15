@@ -1,10 +1,13 @@
 use crate::ffi::FFIBuffer;
 use libc::c_char;
-use std::ffi::CString;
-use scannit_core::travelcard::{TravelCard, PeriodPass};
-use scannit_core::models::{Language, ProductCode, ValidityArea, ValidityLength, BoardingLocation, BoardingDirection, SaleDevice, BoardingArea};
-use scannit_core::history::{TransactionType, History};
 use scannit_core::eticket::ETicket;
+use scannit_core::history::{History, TransactionType};
+use scannit_core::models::{
+    BoardingArea, BoardingDirection, BoardingLocation, Language, ProductCode, SaleDevice,
+    ValidityArea, ValidityLength,
+};
+use scannit_core::travelcard::{PeriodPass, TravelCard};
+use std::ffi::CString;
 
 pub type UnixTimestamp = i64;
 
@@ -15,10 +18,9 @@ pub type UnixTimestamp = i64;
 pub struct FFITravelCard {
     pub application_version: u8,
     pub application_key_version: u8,
-    pub application_instance_id: *const c_char,
+    pub application_instance_id: *mut c_char,
     pub platform_type: u8,
     pub is_mac_protected: bool,
-    
     pub application_issuing_date: UnixTimestamp,
     pub application_status: bool,
     pub application_unblocking_number: u8,
@@ -27,7 +29,7 @@ pub struct FFITravelCard {
 
     pub period_pass: FFIPeriodPass,
 
-    pub stored_value_cents: u32,    
+    pub stored_value_cents: u32,
     pub last_load_datetime: UnixTimestamp,
     pub last_load_value: u32,
     pub last_load_organization_id: u16,
@@ -35,7 +37,7 @@ pub struct FFITravelCard {
 
     pub e_ticket: FFIETicket,
 
-    pub history: FFIBuffer<FFIHistory>
+    pub history: FFIBuffer<FFIHistory>,
 }
 
 impl FFITravelCard {
@@ -44,7 +46,9 @@ impl FFITravelCard {
             application_version: travel_card.application_version,
             application_key_version: travel_card.application_key_version,
             // Note that this immediately leaks the memory of the CString.
-            application_instance_id: CString::new(travel_card.application_instance_id).unwrap().into_raw(),
+            application_instance_id: CString::new(travel_card.application_instance_id)
+                .unwrap()
+                .into_raw(),
             platform_type: travel_card.platform_type,
             is_mac_protected: travel_card.is_mac_protected,
 
@@ -65,7 +69,7 @@ impl FFITravelCard {
             e_ticket: FFIETicket::from_e_ticket(travel_card.e_ticket),
 
             history: FFIBuffer::from(travel_card.history),
-         }
+        }
     }
 }
 
@@ -76,7 +80,7 @@ pub struct FFIPeriodPass {
     pub validity_area_1_kind: ValidityAreaKind,
     /// This is either a single positive integer, or short list of positive integers.
     /// We'll represent it as something that's always an array.
-    pub validity_area_1_value: FFIBuffer<u8>,    
+    pub validity_area_1_value: FFIBuffer<u8>,
     pub period_start_date_1: UnixTimestamp,
 
     pub product_code_2_kind: ProductCodeKind,
@@ -84,12 +88,12 @@ pub struct FFIPeriodPass {
     pub validity_area_2_kind: ValidityAreaKind,
     /// This is either a single positive integer, or short list of positive integers.
     /// We'll represent it as something that's always an array.
-    pub validity_area_2_value: FFIBuffer<u8>,    
+    pub validity_area_2_value: FFIBuffer<u8>,
     pub period_start_date_2: UnixTimestamp,
 
     // Most recent card load:
     pub loaded_period_product_kind: ProductCodeKind,
-    pub loaded_period_product_value: u16,    
+    pub loaded_period_product_value: u16,
     pub loaded_period_datetime: UnixTimestamp,
     pub loaded_period_length: u16,
     /// In cents.
@@ -97,18 +101,18 @@ pub struct FFIPeriodPass {
     pub loading_organization: u16,
     pub loading_device_number: u16,
 
-    // Last use/boarding:    
+    // Last use/boarding:
     pub last_board_datetime: UnixTimestamp,
     pub last_board_vehicle_number: u16,
     pub last_board_location_kind: BoardingLocationKind,
     pub last_board_location_value: u16,
-    pub last_board_direction: BoardingDirection,    
+    pub last_board_direction: BoardingDirection,
     pub last_board_area_kind: ValidityAreaKind,
     pub last_board_area_value: FFIBuffer<u8>,
 }
 
 impl FFIPeriodPass {
-    fn from_period_pass(period_pass: PeriodPass) -> FFIPeriodPass {        
+    fn from_period_pass(period_pass: PeriodPass) -> FFIPeriodPass {
         FFIPeriodPass {
             product_code_1_kind: ProductCodeKind::from(&period_pass.product_code_1),
             product_code_1_value: u16::from(&period_pass.product_code_1),
@@ -134,7 +138,7 @@ impl FFIPeriodPass {
             last_board_vehicle_number: period_pass.last_board_vehicle_number,
             last_board_location_kind: BoardingLocationKind::from(&period_pass.last_board_location),
             last_board_location_value: u16::from(&period_pass.last_board_location),
-            last_board_direction: BoardingDirection::from(period_pass.last_board_direction),
+            last_board_direction: period_pass.last_board_direction,
             last_board_area_kind: ValidityAreaKind::from(&period_pass.last_board_area),
             last_board_area_value: FFIBuffer::from(period_pass.last_board_area),
         }
@@ -152,14 +156,14 @@ pub struct FFIETicket {
     pub validity_area_kind: ValidityAreaKind,
     /// This is either a single positive integer, or short list of positive integers.
     /// We'll represent it as something that's always an array.
-    pub validity_area_value: FFIBuffer<u8>,    
+    pub validity_area_value: FFIBuffer<u8>,
     pub sale_datetime: UnixTimestamp,
     pub sale_device_kind: SaleDeviceKind,
     pub sale_device_value: u16,
     pub ticket_fare_cents: u16,
     pub group_size: u8,
 
-    //Extension ticket stuff    
+    //Extension ticket stuff
     pub extra_zone: bool,
     /// The validity area for the PeriodPass associated with the extra zone ticket.
     pub period_pass_validity_area_kind: ValidityAreaKind,
@@ -180,17 +184,17 @@ pub struct FFIETicket {
     pub extension_2_fare_cents: u16,
     pub sale_status: bool,
 
-    // Ticket validity info    
-    pub validity_start_datetime: UnixTimestamp,    
+    // Ticket validity info
+    pub validity_start_datetime: UnixTimestamp,
     pub validity_end_datetime: UnixTimestamp,
     pub validity_status: bool,
 
-    // Boarding info    
+    // Boarding info
     pub boarding_datetime: UnixTimestamp,
     pub boarding_vehicle: u16,
     pub boarding_location_kind: BoardingLocationKind,
     pub boarding_location_value: u16,
-    pub boarding_direction: BoardingDirection,    
+    pub boarding_direction: BoardingDirection,
     pub boarding_area_kind: BoardingAreaKind,
     pub boarding_area_value: u8,
 }
@@ -213,14 +217,20 @@ impl FFIETicket {
             group_size: e_ticket.group_size,
 
             extra_zone: e_ticket.extra_zone,
-            period_pass_validity_area_kind: ValidityAreaKind::from(&e_ticket.period_pass_validity_area),
+            period_pass_validity_area_kind: ValidityAreaKind::from(
+                &e_ticket.period_pass_validity_area,
+            ),
             period_pass_validity_area_value: FFIBuffer::from(e_ticket.period_pass_validity_area),
             extension_product_code_kind: ProductCodeKind::from(&e_ticket.extension_product_code),
             extension_product_code_value: u16::from(&e_ticket.extension_product_code),
-            extension_1_validity_area_kind: ValidityAreaKind::from(&e_ticket.extension_1_validity_area),
+            extension_1_validity_area_kind: ValidityAreaKind::from(
+                &e_ticket.extension_1_validity_area,
+            ),
             extension_1_validity_area_value: FFIBuffer::from(e_ticket.extension_1_validity_area),
             extension_1_fare_cents: e_ticket.extension_1_fare_cents,
-            extension_2_validity_area_kind: ValidityAreaKind::from(&e_ticket.extension_2_validity_area),
+            extension_2_validity_area_kind: ValidityAreaKind::from(
+                &e_ticket.extension_2_validity_area,
+            ),
             extension_2_validity_area_value: FFIBuffer::from(e_ticket.extension_2_validity_area),
             extension_2_fare_cents: e_ticket.extension_2_fare_cents,
             sale_status: e_ticket.sale_status,
@@ -240,8 +250,8 @@ impl FFIETicket {
 }
 
 pub struct FFIHistory {
-    pub transaction_type: TransactionType,    
-    pub boarding_datetime: UnixTimestamp,    
+    pub transaction_type: TransactionType,
+    pub boarding_datetime: UnixTimestamp,
     pub transfer_end_datetime: UnixTimestamp,
     pub ticket_fare_cents: u16,
     pub group_size: u8,
@@ -264,31 +274,32 @@ impl FFIHistory {
 impl From<ValidityArea> for FFIBuffer<u8> {
     fn from(val: ValidityArea) -> Self {
         match val {
-            ValidityArea::OldZone(zoneNum) => {
-                let mut zoneNumsVec = vec!(zoneNum);
-                let ffi_buffer = FFIBuffer::from(&mut zoneNumsVec);
-                std::mem::forget(zoneNumsVec);
+            ValidityArea::OldZone(zone_num) => {
+                let mut zone_nums_vec = vec![zone_num];
+                let ffi_buffer = FFIBuffer::from(&mut zone_nums_vec);
+                std::mem::forget(zone_nums_vec);
                 ffi_buffer
-            },
-            ValidityArea::Vehicle(vehicleType) => {
-                let mut vehicleNumsVec = vec!(u8::from(&vehicleType));
-                let ffi_buffer = FFIBuffer::from(&mut vehicleNumsVec);
-                std::mem::forget(vehicleNumsVec);
+            }
+            ValidityArea::Vehicle(vehicle_type) => {
+                let mut vehicle_nums_vec = vec![u8::from(&vehicle_type)];
+                let ffi_buffer = FFIBuffer::from(&mut vehicle_nums_vec);
+                std::mem::forget(vehicle_nums_vec);
                 ffi_buffer
-            },
+            }
             ValidityArea::Zone(zones) => {
-                let mut zonesVec: Vec<u8> = zones.iter().map(|x| u8::from(x)).collect();
-                let ffi_buffer = FFIBuffer::from(&mut zonesVec);
-                std::mem::forget(zonesVec);
+                let mut zones_vec: Vec<u8> = zones.iter().map(u8::from).collect();
+                let ffi_buffer = FFIBuffer::from(&mut zones_vec);
+                std::mem::forget(zones_vec);
                 ffi_buffer
-            }        
+            }
         }
     }
 }
 
 impl From<Vec<History>> for FFIBuffer<FFIHistory> {
     fn from(val: Vec<History>) -> Self {
-        let mut ffi_histories: Vec<FFIHistory> = val.iter().map(|x| FFIHistory::from_history(x)).collect();
+        let mut ffi_histories: Vec<FFIHistory> =
+            val.iter().map(|x| FFIHistory::from_history(x)).collect();
         let ffi_buffer = FFIBuffer::from(&mut ffi_histories);
         std::mem::forget(ffi_histories);
         ffi_buffer
@@ -306,7 +317,7 @@ impl From<&ProductCode> for ProductCodeKind {
     fn from(val: &ProductCode) -> Self {
         match val {
             ProductCode::FaresFor2010(_) => ProductCodeKind::FaresFor2010,
-            ProductCode::FaresFor2014(_) => ProductCodeKind::FaresFor2014
+            ProductCode::FaresFor2014(_) => ProductCodeKind::FaresFor2014,
         }
     }
 }
@@ -352,7 +363,7 @@ impl From<&BoardingLocation> for BoardingLocationKind {
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ValidityLengthKind {
-    Minutes = 0 ,
+    Minutes = 0,
     Hours = 1,
     TwentyFourHourPeriods = 2,
     Days = 3,
