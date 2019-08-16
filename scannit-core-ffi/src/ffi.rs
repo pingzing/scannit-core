@@ -41,6 +41,7 @@ impl From<&mut Vec<u8>> for FFIByteBuffer {
     }
 }
 
+#[repr(C)]
 pub struct FFIHistoryBuffer {
     data: *mut FFIHistory,
     len: usize,

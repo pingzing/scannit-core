@@ -65,7 +65,7 @@ pub struct PeriodPass {
     pub last_board_vehicle_number: u16,
     pub last_board_location: BoardingLocation,
     pub last_board_direction: BoardingDirection,
-    pub last_board_area: ValidityArea,
+    pub last_board_area: BoardingArea,
 }
 
 pub fn create_travel_card(
@@ -199,7 +199,7 @@ fn read_period_pass(period_pass: &[u8]) -> PeriodPass {
             last_board_location_num,
         ),
         last_board_direction: BoardingDirection::from(last_board_direction),
-        last_board_area: ValidityArea::new(last_board_area_type, last_board_area),
+        last_board_area: BoardingArea::new(last_board_area_type, last_board_area),
     }
 }
 

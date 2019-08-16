@@ -70,7 +70,7 @@ fn main() {
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
     let stored_value =
-        transcieve(&card, Command::ReadPeriodPass.into(), &mut response_buffer).unwrap();
+        transcieve(&card, Command::ReadStoredValue.into(), &mut response_buffer).unwrap();
 
     let mut response_buffer = [0; MAX_BUFFER_SIZE];
     let e_ticket = transcieve(&card, Command::ReadETicket.into(), &mut response_buffer).unwrap();

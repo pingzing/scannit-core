@@ -57,8 +57,7 @@ pub unsafe extern "C" fn free_travel_card(travel_card_ptr: *mut FFITravelCard) {
     ffi::free_history_buffer(travel_card.history);
 
     ffi::free_byte_buffer(travel_card.period_pass.validity_area_1_value);
-    ffi::free_byte_buffer(travel_card.period_pass.validity_area_2_value);
-    ffi::free_byte_buffer(travel_card.period_pass.last_board_area_value);
+    ffi::free_byte_buffer(travel_card.period_pass.validity_area_2_value);    
 
     ffi::free_byte_buffer(travel_card.e_ticket.validity_area_value);
     ffi::free_byte_buffer(travel_card.e_ticket.period_pass_validity_area_value);

@@ -1,4 +1,4 @@
-use crate::ffi::{FFIHistoryBuffer, FFIByteBuffer};
+use crate::ffi::{FFIByteBuffer, FFIHistoryBuffer};
 use libc::c_char;
 use scannit_core::eticket::ETicket;
 use scannit_core::history::{History, TransactionType};
@@ -82,6 +82,7 @@ pub struct FFIPeriodPass {
     /// We'll represent it as something that's always an array.
     pub validity_area_1_value: FFIByteBuffer,
     pub period_start_date_1: UnixTimestamp,
+    pub period_end_date_1: UnixTimestamp,
 
     pub product_code_2_kind: ProductCodeKind,
     pub product_code_2_value: u16,
@@ -90,6 +91,7 @@ pub struct FFIPeriodPass {
     /// We'll represent it as something that's always an array.
     pub validity_area_2_value: FFIByteBuffer,
     pub period_start_date_2: UnixTimestamp,
+    pub period_end_date_2: UnixTimestamp,
 
     // Most recent card load:
     pub loaded_period_product_kind: ProductCodeKind,
@@ -107,8 +109,8 @@ pub struct FFIPeriodPass {
     pub last_board_location_kind: BoardingLocationKind,
     pub last_board_location_value: u16,
     pub last_board_direction: BoardingDirection,
-    pub last_board_area_kind: ValidityAreaKind,
-    pub last_board_area_value: FFIByteBuffer,
+    pub last_board_area_kind: BoardingAreaKind,
+    pub last_board_area_value: u8,
 }
 
 impl FFIPeriodPass {
@@ -119,12 +121,14 @@ impl FFIPeriodPass {
             validity_area_1_kind: ValidityAreaKind::from(&period_pass.validity_area_1),
             validity_area_1_value: FFIByteBuffer::from(period_pass.validity_area_1),
             period_start_date_1: period_pass.period_start_date_1.and_hms(0, 0, 0).timestamp(),
+            period_end_date_1: period_pass.period_end_date_1.and_hms(0, 0, 0).timestamp(),
 
             product_code_2_kind: ProductCodeKind::from(&period_pass.product_code_2),
             product_code_2_value: u16::from(&period_pass.product_code_2),
             validity_area_2_kind: ValidityAreaKind::from(&period_pass.validity_area_2),
             validity_area_2_value: FFIByteBuffer::from(period_pass.validity_area_2),
             period_start_date_2: period_pass.period_start_date_2.and_hms(0, 0, 0).timestamp(),
+            period_end_date_2: period_pass.period_end_date_2.and_hms(0, 0, 0).timestamp(),
 
             loaded_period_product_kind: ProductCodeKind::from(&period_pass.loaded_period_product),
             loaded_period_product_value: u16::from(&period_pass.loaded_period_product),
@@ -139,8 +143,8 @@ impl FFIPeriodPass {
             last_board_location_kind: BoardingLocationKind::from(&period_pass.last_board_location),
             last_board_location_value: u16::from(&period_pass.last_board_location),
             last_board_direction: period_pass.last_board_direction,
-            last_board_area_kind: ValidityAreaKind::from(&period_pass.last_board_area),
-            last_board_area_value: FFIByteBuffer::from(period_pass.last_board_area),
+            last_board_area_kind: BoardingAreaKind::from(&period_pass.last_board_area),
+            last_board_area_value: u8::from(&period_pass.last_board_area),
         }
     }
 }
@@ -220,18 +224,24 @@ impl FFIETicket {
             period_pass_validity_area_kind: ValidityAreaKind::from(
                 &e_ticket.period_pass_validity_area,
             ),
-            period_pass_validity_area_value: FFIByteBuffer::from(e_ticket.period_pass_validity_area),
+            period_pass_validity_area_value: FFIByteBuffer::from(
+                e_ticket.period_pass_validity_area,
+            ),
             extension_product_code_kind: ProductCodeKind::from(&e_ticket.extension_product_code),
             extension_product_code_value: u16::from(&e_ticket.extension_product_code),
             extension_1_validity_area_kind: ValidityAreaKind::from(
                 &e_ticket.extension_1_validity_area,
             ),
-            extension_1_validity_area_value: FFIByteBuffer::from(e_ticket.extension_1_validity_area),
+            extension_1_validity_area_value: FFIByteBuffer::from(
+                e_ticket.extension_1_validity_area,
+            ),
             extension_1_fare_cents: e_ticket.extension_1_fare_cents,
             extension_2_validity_area_kind: ValidityAreaKind::from(
                 &e_ticket.extension_2_validity_area,
             ),
-            extension_2_validity_area_value: FFIByteBuffer::from(e_ticket.extension_2_validity_area),
+            extension_2_validity_area_value: FFIByteBuffer::from(
+                e_ticket.extension_2_validity_area,
+            ),
             extension_2_fare_cents: e_ticket.extension_2_fare_cents,
             sale_status: e_ticket.sale_status,
             validity_start_datetime: e_ticket.validity_start_datetime.timestamp(),
@@ -249,6 +259,7 @@ impl FFIETicket {
     }
 }
 
+#[repr(C)]
 pub struct FFIHistory {
     pub transaction_type: TransactionType,
     pub boarding_datetime: UnixTimestamp,
