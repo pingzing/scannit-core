@@ -18,13 +18,15 @@ pub unsafe extern "C" fn create_travel_card(
     e_ticket_size: usize,
     history_ptr: *const u8,
     history_size: usize,
-) -> FFITravelCard {
+) -> *mut FFITravelCard {
     let app_info;
     let control_info;
     let period_pass;
     let stored_value;
     let e_ticket;
     let history;
+
+    println!("Running in Rust...");
 
     // Actual unsafety begins here
     app_info = std::slice::from_raw_parts(app_info_ptr, app_info_size);
@@ -44,20 +46,22 @@ pub unsafe extern "C" fn create_travel_card(
         history,
     );
 
-    FFITravelCard::from_travel_card(travelcard)
+    let ffi_travel_card = FFITravelCard::from_travel_card(travelcard);
+    Box::into_raw(Box::from(ffi_travel_card))
 }
 
 #[no_mangle]
-pub extern "C" fn free_travel_card(travel_card: FFITravelCard) {
+pub unsafe extern "C" fn free_travel_card(travel_card_ptr: *mut FFITravelCard) {
+    let travel_card = Box::from_raw(travel_card_ptr);
     ffi::free_string(travel_card.application_instance_id);
-    ffi::free_buffer(travel_card.history);
+    ffi::free_history_buffer(travel_card.history);
 
-    ffi::free_buffer(travel_card.period_pass.validity_area_1_value);
-    ffi::free_buffer(travel_card.period_pass.validity_area_2_value);
-    ffi::free_buffer(travel_card.period_pass.last_board_area_value);
+    ffi::free_byte_buffer(travel_card.period_pass.validity_area_1_value);
+    ffi::free_byte_buffer(travel_card.period_pass.validity_area_2_value);
+    ffi::free_byte_buffer(travel_card.period_pass.last_board_area_value);
 
-    ffi::free_buffer(travel_card.e_ticket.validity_area_value);
-    ffi::free_buffer(travel_card.e_ticket.period_pass_validity_area_value);
-    ffi::free_buffer(travel_card.e_ticket.extension_1_validity_area_value);
-    ffi::free_buffer(travel_card.e_ticket.extension_2_validity_area_value);
+    ffi::free_byte_buffer(travel_card.e_ticket.validity_area_value);
+    ffi::free_byte_buffer(travel_card.e_ticket.period_pass_validity_area_value);
+    ffi::free_byte_buffer(travel_card.e_ticket.extension_1_validity_area_value);
+    ffi::free_byte_buffer(travel_card.e_ticket.extension_2_validity_area_value);
 }
