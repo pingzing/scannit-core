@@ -1,10 +1,9 @@
 [package]
 name = "scannit-core"
+description = "A library for reading Helsinki HSL's travel cards."
 version = "0.1.0"
 authors = ["Neil McAlister <mcalistern@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 #NOTE: In order to build for Android, the NDK must be installed, and a machine-wide 
 # .cargo/config should be created that has Cargo directives for where to find 'ar' and a linker
