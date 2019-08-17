@@ -7,7 +7,7 @@ authors = ["Neil McAlister <mcalistern@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-scannit-core = {path = "../"}
+scannit-core = {path = "../", version = "0.1.0"}
 libc = "*"
 
 [lib]
