@@ -2,6 +2,12 @@ mod ffi;
 pub mod models;
 
 use models::FFITravelCard;
+use scannit_core::desfire::{
+    ERROR_RESPONSE, GET_APPLICATION_IDS_COMMAND, GET_VERSION_COMMAND, MORE_DATA_RESPONSE,
+    OK_RESPONSE, READ_APP_INFO_COMMAND, READ_CONTROL_INFO_COMMAND, READ_E_TICKET_COMMAND,
+    READ_HISTORY_COMMAND, READ_NEXT_COMMAND, READ_PERIOD_PASS_COMMAND, READ_STORED_VALUE_COMMAND,
+    SELECT_HSL_COMMAND,
+};
 use scannit_core::travelcard;
 
 #[no_mangle]
@@ -24,9 +30,7 @@ pub unsafe extern "C" fn create_travel_card(
     let period_pass;
     let stored_value;
     let e_ticket;
-    let history;
-
-    println!("Running in Rust...");
+    let history;    
 
     // Actual unsafety begins here
     app_info = std::slice::from_raw_parts(app_info_ptr, app_info_size);
@@ -57,10 +61,78 @@ pub unsafe extern "C" fn free_travel_card(travel_card_ptr: *mut FFITravelCard) {
     ffi::free_history_buffer(travel_card.history);
 
     ffi::free_byte_buffer(travel_card.period_pass.validity_area_1_value);
-    ffi::free_byte_buffer(travel_card.period_pass.validity_area_2_value);    
+    ffi::free_byte_buffer(travel_card.period_pass.validity_area_2_value);
 
     ffi::free_byte_buffer(travel_card.e_ticket.validity_area_value);
     ffi::free_byte_buffer(travel_card.e_ticket.period_pass_validity_area_value);
     ffi::free_byte_buffer(travel_card.e_ticket.extension_1_validity_area_value);
     ffi::free_byte_buffer(travel_card.e_ticket.extension_2_validity_area_value);
+}
+
+// The following don't need free() functions, because they're constant--
+// they never get freed anyway.
+
+#[no_mangle]
+pub extern "C" fn get_GET_VERSION_COMMAND() -> *const u8 {
+    GET_VERSION_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_GET_APPLICATION_IDS_COMMAND() -> *const u8 {
+    GET_APPLICATION_IDS_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_SELECT_HSL_COMMAND() -> *const u8 {
+    SELECT_HSL_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_APP_INFO_COMMAND() -> *const u8 {
+    READ_APP_INFO_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_CONTROL_INFO_COMMAND() -> *const u8 {
+    READ_CONTROL_INFO_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_PERIOD_PASS_COMMAND() -> *const u8 {
+    READ_PERIOD_PASS_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_STORED_VALUE_COMMAND() -> *const u8 {
+    READ_STORED_VALUE_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_E_TICKET_COMMAND() -> *const u8 {
+    READ_E_TICKET_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_HISTORY_COMMAND() -> *const u8 {
+    READ_HISTORY_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_READ_NEXT_COMMAND() -> *const u8 {
+    READ_NEXT_COMMAND.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_OK_RESPONSE() -> *const u8 {
+    OK_RESPONSE.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_ERROR_RESPONSE() -> *const u8 {
+    ERROR_RESPONSE.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn get_MORE_DATA_RESPONSE() -> *const u8 {
+    MORE_DATA_RESPONSE.as_ptr()
 }
