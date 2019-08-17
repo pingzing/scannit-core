@@ -10,6 +10,7 @@ edition = "2018"
 exclude = [
     ".vscode/*",
     ".gitignore",
+    "azure-pipelines.yml"
 ]
 
 #NOTE: In order to build for Android, the NDK must be installed, and a machine-wide 
