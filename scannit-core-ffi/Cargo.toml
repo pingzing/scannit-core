@@ -4,6 +4,8 @@ description = """An FFI wrapper around scannit-core. Exports scannit-core's
 functionality and data models in an FFI-friendly manner."""
 version = "0.1.0"
 authors = ["Neil McAlister <mcalistern@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/pingzing/scannit-core/"
 edition = "2018"
 
 [dependencies]
