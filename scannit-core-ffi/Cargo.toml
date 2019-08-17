@@ -10,7 +10,7 @@ edition = "2018"
 
 [dependencies]
 scannit-core = {path = "../", version = "0.1.0"}
-libc = "*"
+libc = "0.2"
 
 [lib]
 crate-type = ["cdylib"]
