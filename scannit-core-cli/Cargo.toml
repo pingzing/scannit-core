@@ -1,5 +1,6 @@
 [package]
 name = "scannit-core-cli"
+description = "A lazy example of using scannit-core in a basic CLI app."
 version = "0.1.0"
 authors = ["Neil McAlister <mcalistern@gmail.com>"]
 edition = "2018"
