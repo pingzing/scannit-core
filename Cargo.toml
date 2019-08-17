@@ -3,6 +3,8 @@ name = "scannit-core"
 description = "A library for reading Helsinki HSL's travel cards."
 version = "0.1.0"
 authors = ["Neil McAlister <mcalistern@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/pingzing/scannit-core/"
 edition = "2018"
 
 #NOTE: In order to build for Android, the NDK must be installed, and a machine-wide 
