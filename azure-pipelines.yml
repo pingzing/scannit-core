@@ -44,6 +44,41 @@ pool:
 
 steps:
 
+  # Update the version number in the main Cargo.toml.
+  - task: VersionAssemblies@2
+    inputs:
+      filePattern: 'Cargo.toml'
+      versionSource: 'buildNumber'
+      versionFormat: 'custom'
+      customBuildRegex: '(\d+.\d+.)(\d+)'
+      replaceVersionFormat: 'custom'
+      customReplaceRegex: 'version = "\d+.\d+.\d+'
+      replacePrefix: 'version = "'
+
+  # Update version number in scannit-core-ffi
+  - task: VersionAssemblies@2
+    inputs:
+      sourcePath: 'scannit-core-ffi'
+      filePattern: 'Cargo.toml'
+      versionSource: 'buildNumber'
+      versionFormat: 'custom'
+      customBuildRegex: '(\d+.\d+.)(\d+)'
+      replaceVersionFormat: 'custom'
+      customReplaceRegex: 'version = "\d+.\d+.\d+'
+      replacePrefix: 'version = "'
+
+  # Update scannit-core dependency version number in scannit-core-ffi
+  - task: VersionAssemblies@2
+    inputs:
+      sourcePath: 'scannit-core-ffi'
+      filePattern: 'Cargo.toml'
+      versionSource: 'buildNumber'
+      versionFormat: 'custom'
+      customBuildRegex: '(\d+.\d+.)(\d+)'
+      replaceVersionFormat: 'custom'
+      customReplaceRegex: 'scannit-core = {path = "../", version = "\d+.\d+.\d+'
+      replacePrefix: scannit-core = {path = "../", version = "'
+
 # Non-Windows install rust
   - script:  |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
@@ -80,7 +115,7 @@ steps:
     displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
 
-  - script: cargo build --all --target $(target) --exclude $(excludes)
+  - script: cargo build --all --target $(target) --exclude $(excludes) --release
     displayName: Cargo build
 
   - script: cargo test --all --exclude $(excludes)
@@ -89,7 +124,7 @@ steps:
   - task: ArchiveFiles@2
     displayName: Zip artifacts
     inputs:
-      rootFolderOrFile: 'target/$(target)/debug'
+      rootFolderOrFile: 'target/$(target)/release'
       includeRootFolder: true
       archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/scannit-core_$(Build.BuildId)_$(target).zip'
