@@ -1,4 +1,4 @@
-name: $(rev:r)
+name: 0.1$(rev:.r)
 
 variables:
   # Found through trial-and-error. May not be stable?
@@ -52,7 +52,7 @@ steps:
       filePattern: 'Cargo.toml'
       versionSource: 'buildNumber'
       versionFormat: 'custom'
-      customBuildRegex: '(\d+)'
+      customBuildRegex: '(\d+.\d+.)(\d+)'
       replaceVersionFormat: 'custom'
       customReplaceRegex: 'version = "\d+.\d+.\d+'
       replacePrefix: 'version = "'
@@ -64,22 +64,10 @@ steps:
       filePattern: 'Cargo.toml'
       versionSource: 'buildNumber'
       versionFormat: 'custom'
-      customBuildRegex: '(\d+)'
+      customBuildRegex: '(\d+.\d+.)(\d+)'
       replaceVersionFormat: 'custom'
       customReplaceRegex: 'version = "\d+.\d+.\d+'
       replacePrefix: 'version = "'
-
-  # Update scannit-core dependency version number in scannit-core-ffi
-  - task: VersionAssemblies@2
-    inputs:
-      sourcePath: 'scannit-core-ffi'
-      filePattern: 'Cargo.toml'
-      versionSource: 'buildNumber'
-      versionFormat: 'custom'
-      customBuildRegex: '(\d+)'
-      replaceVersionFormat: 'custom'
-      customReplaceRegex: 'scannit-core = {path = "../", version = "\d+.\d+.\d+'
-      replacePrefix: scannit-core = {path = "../", version = "'
 
 # Non-Windows install rust
   - script:  |
