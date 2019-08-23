@@ -43,6 +43,7 @@ pool:
   vmImage: $(imageName)
 
 steps:
+
 # Non-Windows install rust
   - script:  |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
