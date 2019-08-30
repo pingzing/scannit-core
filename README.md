@@ -1,6 +1,8 @@
 # scannit-core
 
-This is a library designed to read a V2 [HSL Travel Card](https://dev.hsl.fi/#travel-card). It's heavily based on the [HSL-provided](https://github.com/hsldevcom/hsl-card-java), and an evolution of my V1, C#-based version of the library, [HSLTravelSharp](https://github.com/pingzing/hsl-travel-sharp/).
+[![Build Status](https://dev.azure.com/mcalistern/scannit-core/_apis/build/status/pingzing.scannit-core?branchName=master)](https://dev.azure.com/mcalistern/scannit-core/_build/latest?definitionId=16&branchName=master)
+
+This is a library designed to read a V2 [HSL Travel Card](https://dev.hsl.fi/#travel-card). It's heavily based on the [HSL-provided Java library](https://github.com/hsldevcom/hsl-card-java), and an evolution of my V1, C#-based version of the library, [HSLTravelSharp](https://github.com/pingzing/hsl-travel-sharp/).
 
 # Usage
 
