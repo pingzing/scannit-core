@@ -1,12 +1,12 @@
 # Install Rust
 $cargoPath = "";
 if ($env:AGENT_OS -eq "Windows_NT") {
-    curl -sSf -o rustup-init.exe https://win.rustup.rs;
-    rustup-init.exe -y --default-toolchain stable;
+    Invoke-WebRequest https://win.rustup.rs -OutFile ./rustup-init.exe;
+    & ./rustup-init.exe -y --default-toolchain stable;
     $cargoPath = "~/.cargo/bin";    
 }
 else {
-    curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable    
+    (Invoke-WebRequest https://sh.rustup.rs).Content | & sh -s -- -y --default-toolchain stable    
     $cargoPath = "~/.cargo/bin";
 }
 
