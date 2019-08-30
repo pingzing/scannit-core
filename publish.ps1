@@ -24,7 +24,7 @@ Write-Host "Rewrote version for FFI Cargo.toml.";
 
 # CARGO_API_KEY is a secret env var, and should be replaced by Azure DevOps.
 # Publish main project
-& $cargoPath/cargo cargo login $(CARGO_API_KEY);
+& $cargoPath/cargo cargo login $env:CargoApiKey;
 & $cargoPath/cargo publish;
 
 # Publish FFI project
