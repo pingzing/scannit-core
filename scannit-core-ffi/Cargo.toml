@@ -9,7 +9,7 @@ repository = "https://github.com/pingzing/scannit-core/"
 edition = "2018"
 
 [dependencies]
-scannit-core = {path = "../", version = "0.1.0"}
+scannit-core = {path = "../"}
 libc = "0.2"
 
 [lib]
