@@ -86,6 +86,12 @@ steps:
 
   - script: rustup target add $(target)
     displayName: Rustup add target
+    
+
+# Update apt indexes
+  - script: sudo apt update
+    displayName: Update APT sources
+    condition: eq( variables['Agent.OS'], 'Linux' )
 
 # 32-bit GCC toolchain for 32-bit Linux
   - script: sudo apt install gcc-multilib
@@ -94,7 +100,7 @@ steps:
 
 # Library dependency for building the CLI tool on Linux
 # Note that we don't build the CLI target at all on non-desktop platforms.
-  - script: sudo apt-get install libpcsclite-dev
+  - script: sudo apt install libpcsclite-dev
     displayName: Install libpsclite-dev (Linux only)
     condition: and(eq(variables['Agent.OS'], 'Linux'), not( contains( variables['excludes'], 'scannit-core-cli' ) ))
 
