@@ -16,15 +16,17 @@ $regex = "version = `"(\d.\d).\d";
 $rewrittenMainToml = (Get-Content ./Cargo.toml) -replace $regex, "`$1.$env:BUILD_BUILDNUMBER";
 Set-Content /.Cargo.toml $rewrittenMainToml;
 Write-Host "Rewrote version for main Cargo.toml.";
+Write-Host "New content is: $($rewrittenMainToml)";
 
 # Rewrite version for FFI project
 $rewrittenFfiToml = (Get-Content ./scannit-core-ffi/Cargo.toml) -replace $regex, "`$1.$env:BUILD_BUILDNUMBER";
 Set-Content ./scannit-core-ffi/Cargo.toml $rewrittenFfiToml;
 Write-Host "Rewrote version for FFI Cargo.toml.";
+Write-Host "New content is: $($rewrittenFfiToml)";
 
 # CARGO_API_KEY is a secret env var, and should be replaced by Azure DevOps.
 # Publish main project
-& $cargoPath/cargo cargo login $env:CargoApiKey;
+& $cargoPath/cargo login $env:CargoApiKey;
 & $cargoPath/cargo publish;
 
 # Publish FFI project
