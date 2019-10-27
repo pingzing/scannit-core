@@ -31,4 +31,4 @@ Write-Host "New content is: $($rewrittenFfiToml)";
 
 # Publish FFI project
 Set-Location ./scannit-core-ffi;
-& $cargoPath/cargo publish;
+& $cargoPath/cargo publish --allow-dirty;
