@@ -33,5 +33,8 @@ Write-Host "Rewrote version for FFI Cargo.toml.";
 & $cargoPath/cargo publish --allow-dirty;
 
 # Publish FFI project
+# TODO: Either split this out into a separate release task, or add a long deloy, so
+# Crates.io has a chance to catch up. Otherwise scannit-core-ffi on crates.io will
+# always be a version behind latest.
 Set-Location ./scannit-core-ffi;
 & $cargoPath/cargo publish --allow-dirty;

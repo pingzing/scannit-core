@@ -1,3 +1,5 @@
+# Note: When incrementing this, remember to increment the version
+# in the FFI dependency regex in publish.ps1.
 name: 1.0$(rev:.r)
 
 variables:
