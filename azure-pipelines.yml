@@ -42,6 +42,13 @@ strategy:
       linkerName: armv7a-linux-androideabi28-clang
       targetCapitalized: ARM_LINUX_ANDROIDEABI
       excludes: scannit-core-cli
+    android_x86:
+      imageName: "ubuntu-16.04"
+      target: i686-linux-android
+      arName: i686-linux-android-ar
+      linkerName: i686-linux-android-clang
+      targetCapitalized: I686-LINUX-ANDROID
+      excludes: scannit-core-cli
     
 pool:
   vmImage: $(imageName)
