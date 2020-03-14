@@ -31,7 +31,7 @@ strategy:
     android_(cross):
       imageName: "ubuntu-16.04"
       target: aarch64-linux-android   
-      targetCapitalized: AARCH64_LINUX_ANDROID   
+      targetCapitalized: AARCH64_LINUX_ANDROID #Note: capitalized targets use underscores, not dashes
       arName: aarch64-linux-android-ar
       linkerName: aarch64-linux-android28-clang      
       excludes: scannit-core-cli
@@ -40,14 +40,14 @@ strategy:
       target: arm-linux-androideabi   
       arName: arm-linux-androideabi-ar
       linkerName: armv7a-linux-androideabi28-clang
-      targetCapitalized: ARM_LINUX_ANDROIDEABI
+      targetCapitalized: ARM_LINUX_ANDROIDEABI #Note: capitalized targets use underscores, not dashes
       excludes: scannit-core-cli
     android_x86:
       imageName: "ubuntu-16.04"
       target: i686-linux-android
       arName: i686-linux-android-ar
       linkerName: i686-linux-android28-clang
-      targetCapitalized: I686_LINUX_ANDROID
+      targetCapitalized: I686_LINUX_ANDROID #Note: capitalized targets use underscores, not dashes
       excludes: scannit-core-cli
     
 pool:
@@ -108,8 +108,7 @@ steps:
 # Android linker settings for cross-compiling
   - script: |
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR;]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"      
-      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER;]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"      
-      ls $(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/
+      echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER;]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"            
     displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
 

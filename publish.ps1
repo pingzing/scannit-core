@@ -1,13 +1,6 @@
 # Install Rust
-$cargoPath = "";
-if ($env:AGENT_OS -eq "Windows_NT") {
-    Invoke-WebRequest https://win.rustup.rs -OutFile ./rustup-init.exe;
-    & ./rustup-init.exe -y --default-toolchain stable;
-    $cargoPath = "~/.cargo/bin";    
-}
-else {
+if ($env:AGENT_OS -ne "Windows_NT") {
     (Invoke-WebRequest https://sh.rustup.rs).Content | & sh -s -- -y --default-toolchain stable    
-    $cargoPath = "~/.cargo/bin";
 }
 
 $regex = "version = `"\d.\d.\d";
@@ -29,12 +22,16 @@ Write-Host "Rewrote version for FFI Cargo.toml.";
 
 # CARGO_API_KEY is a secret env var, and should be replaced by Azure DevOps.
 # Publish main project
-& $cargoPath/cargo login $env:CargoApiKey;
-& $cargoPath/cargo publish --allow-dirty;
+& cargo login $env:CargoApiKey;
+& cargo publish --allow-dirty;
+
+# TODO: This is dumb. Without the delay, attempting to publish the FFI project will always grab the previous
+# version, because crates.io is still publishing the newly-uploaded version.
+# This should just be a separate release stage that depends on this one.
+$sleepSeconds = 30;
+Write-Host "Sleeping $sleepSeconds seconds to allow crates.io time to publish scannit-core...";
+Start-Sleep 30;
 
 # Publish FFI project
-# TODO: Either split this out into a separate release task, or add a long deloy, so
-# Crates.io has a chance to catch up. Otherwise scannit-core-ffi on crates.io will
-# always be a version behind latest.
 Set-Location ./scannit-core-ffi;
-& $cargoPath/cargo publish --allow-dirty;
+& cargo publish --allow-dirty;
