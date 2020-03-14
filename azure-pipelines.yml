@@ -86,12 +86,12 @@ steps:
     condition: ne( variables['Agent.OS'], 'Windows_NT' ) 
 
 # Windows install Rust
-  - script: |
-      curl -sSf -o rustup-init.exe https://win.rustup.rs
-      rustup-init.exe -y --default-toolchain stable
-      echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
-    displayName: Install Rust (Windows)
-    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  # - script: |
+  #     curl -sSf -o rustup-init.exe https://win.rustup.rs
+  #     rustup-init.exe -y --default-toolchain stable
+  #     echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
+  #   displayName: Install Rust (Windows)
+  #   condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
   - script: rustup target add $(target)
     displayName: Rustup add target
@@ -117,6 +117,7 @@ steps:
   - script: |
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_AR;]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(arName)"      
       echo "##vso[task.setvariable variable=CARGO_TARGET_$(targetCapitalized)_LINKER;]$(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/$(linkerName)"      
+      ls $(ndk_home)/toolchains/llvm/prebuilt/linux-x86_64/bin/
     displayName: Set Android Linker
     condition: contains( variables['target'], 'android' )
 
