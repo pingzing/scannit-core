@@ -17,7 +17,7 @@ strategy:
       target: i686-unknown-linux-gnu  
       excludes: scannit-core-cli           
     mac:
-      imageName: "macos-10.13"
+      imageName: "macOS-10.15"
       target: x86_64-apple-darwin    
       excludes: none  
     windows:
@@ -46,7 +46,7 @@ strategy:
       imageName: "ubuntu-16.04"
       target: i686-linux-android
       arName: i686-linux-android-ar
-      linkerName: i686-linux-android-clang
+      linkerName: i686-linux-android28-clang
       targetCapitalized: I686-LINUX-ANDROID
       excludes: scannit-core-cli
     
